@@ -1,37 +1,65 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
-/*
-|--------------------------------------------------------------------------
-| Public Auth Routes (Rate Limited)
-|--------------------------------------------------------------------------
-*/
-Route::middleware('throttle:10,1')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+// Login endpoint - rate limiting is handled in LoginRequest class
+// 5 attempts per email+IP combination with 60 second lockout
+Route::post('/login', [AuthController::class, 'login']);
+
+// System version endpoint (public - no authentication required)
+Route::get('/version', function () {
+    return response()->json([
+        'name' => config('app.name'),
+        'version' => config('app.version'),
+        'environment' => config('app.env'),
+        'laravel_version' => app()->version(),
+    ]);
 });
 
-/*
-|--------------------------------------------------------------------------
-| Protected Routes (Sanctum)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth:sanctum'])->group(function () {
+// Note: CSRF token endpoint is not needed for token-based API authentication
+// For stateful SPA authentication, use Sanctum's built-in endpoint: GET /sanctum/csrf-cookie
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::get('/me', function (\Illuminate\Http\Request $request) {
+// Protected routes (authentication required)
+Route::middleware('auth:sanctum')->group(function () {
+    // Get current authenticated user
+    Route::get('/user', function (Request $request) {
         $user = $request->user();
-
         return response()->json([
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'role'  => $user->role?->name,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
         ]);
     });
 
+    // Logout endpoint
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Update profile endpoint - Users can update their own profile
+    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+    Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+
+    // Registration endpoint - ONLY accessible by administrator
+    // Root user can create other users (admission, nurse, doctor)
+    Route::post('/register', [AuthController::class, 'register'])
+        ->middleware('administrator');
+
+    // User management endpoints - ONLY accessible by administrator
+    Route::middleware('administrator')->group(function () {
+        // List users (active by default, add ?deleted=true for deleted users)
+        Route::get('/users', [AuthController::class, 'index']);
+
+        // Send password reset link to a user
+        Route::post('/users/forgot-password', [AuthController::class, 'sendPasswordResetLink']);
+
+        // Delete a user (soft delete)
+        Route::delete('/users/{id}', [AuthController::class, 'destroy']);
+
+        // Restore a soft-deleted user
+        Route::post('/users/{id}/restore', [AuthController::class, 'restore']);
+    });
 });

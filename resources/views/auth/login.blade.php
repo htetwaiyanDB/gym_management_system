@@ -2,7 +2,7 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ url('/api/login') }}">
         @csrf
 
         <!-- Email -->
@@ -78,15 +78,6 @@
 
         <!-- Actions -->
         <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a
-                    class="underline text-sm text-gray-600 hover:text-gray-900"
-                    href="{{ route('password.request') }}"
-                >
-                    Forgot your password?
-                </a>
-            @endif
-
             <x-primary-button class="ml-3">
                 Log in
             </x-primary-button>
