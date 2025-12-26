@@ -26,10 +26,25 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
+        $captchaLength = config('captcha.default.length', 6);
+
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            'captcha'  => ['required', 'captcha'],
+            'captcha'  => ['required', 'captcha', "digits:{$captchaLength}"],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'captcha.captcha' => 'Invalid captcha. Please try again.',
+            'captcha.digits' => 'Captcha must be numbers only.',
         ];
     }
 

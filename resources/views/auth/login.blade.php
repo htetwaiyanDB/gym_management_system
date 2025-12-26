@@ -66,6 +66,9 @@
                 name="captcha"
                 required
                 autocomplete="off"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="{{ config('captcha.default.length', 6) }}"
                 placeholder="Enter captcha"
             />
             <x-input-error :messages="$errors->get('captcha')" class="mt-2" />

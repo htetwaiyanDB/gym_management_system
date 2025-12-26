@@ -39,6 +39,29 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <!-- Role -->
+        <div class="mt-4">
+            <x-input-label for="role" :value="__('Register As')" />
+            <select
+                id="role"
+                name="role"
+                class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                required
+            >
+                <option value="" disabled {{ old('role') ? '' : 'selected' }}>
+                    {{ __('Select role') }}
+                </option>
+                <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>
+                    {{ __('User') }}
+                </option>
+                <option value="trainer" {{ old('role') === 'trainer' ? 'selected' : '' }}>
+                    {{ __('Trainer') }}
+                </option>
+            </select>
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+        </div>
+
+
          <!-- CAPTCHA -->
         <div class="mt-4">
             <x-input-label value="Captcha" />
@@ -61,6 +84,9 @@
                 type="text"
                 name="captcha"
                 class="block w-full mt-3 border-gray-300 rounded-md shadow-sm"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="{{ config('captcha.default.length', 6) }}"
                 placeholder="Enter captcha"
                 required
             />

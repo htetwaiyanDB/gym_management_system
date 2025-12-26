@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
+use App\Mail\EmailVerificationCodeMail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -24,20 +26,31 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        // ✅ If you are using captcha on the login page, validate it here
-        // Make sure your input name is: name="captcha"
-        $validator = Validator::make($request->all(), [
-            'captcha' => ['required', 'captcha'],
-        ]);
-
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput($request->only('email', 'remember'));
-        }
-
         // Breeze default: this will attempt login using email/password
         $request->authenticate();
+
+        $user = $request->user();
+
+        if ($user && ! $user->email_verified_at) {
+            $verificationCode = (string) random_int(100000, 999999);
+
+            $user->forceFill([
+                'email_verification_code' => $verificationCode,
+                'email_verification_expires_at' => now()->addMinutes(10),
+            ])->save();
+
+            Mail::to($user->email)->send(
+                new EmailVerificationCodeMail($verificationCode)
+            );
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('verify.form')
+                ->with('email', $user->email)
+                ->with('success', 'Verification code sent to your email.');
+        }
 
         // Important: regenerate session so login persists
         $request->session()->regenerate();

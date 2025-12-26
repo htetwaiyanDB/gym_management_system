@@ -27,11 +27,16 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $captchaLength = config('captcha.default.length', 6);
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['required', 'in:administrator,trainer,user'],
+            'role' => ['required', 'in:trainer,user'],
+            'captcha' => ['required', 'captcha', "digits:{$captchaLength}"],
+        ], [
+            'captcha.captcha' => 'Invalid captcha. Please try again.',
+            'captcha.digits' => 'Captcha must be numbers only.',
         ]);
 
         // Generate 6-digit OTP

@@ -22,11 +22,16 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+          $captchaLength = config('captcha.default.length', 6);
+
         // ✅ Validate input + CAPTCHA
         $request->validate([
             'email'   => ['required', 'email'],
             'password'=> ['required'],
-            'captcha' => ['required', 'captcha'],
+            'captcha' => ['required', 'captcha', "digits:{$captchaLength}"],
+        ], [
+            'captcha.captcha' => 'Invalid captcha. Please try again.',
+            'captcha.digits' => 'Captcha must be numbers only.',
         ]);
 
         // ✅ Attempt authentication
