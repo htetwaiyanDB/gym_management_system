@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
+
     /**
      * Register Endpoint
      * Creates a new user account with validated credentials

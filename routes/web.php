@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,7 +38,7 @@ Route::get('/dashboard', function () {
 
  Route::view('/attendance', 'pages.attendance')->name('attendance.index');
     Route::view('/reports', 'pages.reports')->name('reports.index');
-    Route::view('/users', 'pages.users')->name('users.index');
+    Route::view('/users', 'pages.users')->middleware(['auth', 'administrator'])->name('users.index');
     Route::view('/subscriptions', 'pages.subscriptions')->name('subscriptions.index');
     Route::view('/pricing', 'pages.pricing')->name('pricing.index');
     Route::view('/trainer-bookings', 'pages.trainer-bookings')->name('trainer-bookings.index');
@@ -71,6 +72,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth', 'administrator'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/deleted', [UserController::class, 'deleted'])->name('users.deleted');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 });
 
 

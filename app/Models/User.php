@@ -5,11 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable,SoftDeletes;
+
+     /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
 
     protected $fillable = [
         'name',
@@ -32,6 +39,70 @@ class User extends Authenticatable
             'password' => 'hashed',
             'email_verified_at' => 'datetime',
         ];
+    }
+
+        /**
+     * Boot the model.
+     * Prevent creating multiple administrator accounts.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            // If trying to create a administrator, check if one already exists
+            if ($user->role === 'administrator') {
+                $existingRootUser = static::where('role', 'administrator')
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+
+                if ($existingRootUser) {
+                    Log::warning('Attempt to create duplicate administrator blocked', [
+                        'email' => $user->email,
+                    ]);
+
+                    throw ValidationException::withMessages([
+                        'role' => ['Root user already exists. Only one root user is allowed in the system.'],
+                    ]);
+                }
+            }
+        });
+
+        static::updating(function ($user) {
+            // Prevent changing a non root user to administrator if one already exists
+            if ($user->isDirty('role') && $user->role === 'administrator') {
+                $existingRootUser = static::where('role', 'administrator')
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+
+                if ($existingRootUser) {
+                    Log::warning('Attempt to change role to administrator blocked - root user already exists', [
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                    ]);
+
+                    throw ValidationException::withMessages([
+                        'role' => ['Root user already exists. Only one root user is allowed in the system.'],
+                    ]);
+                }
+            }
+        });
+
+        static::deleting(function ($user) {
+            // Prevent deleting administrator
+            if ($user->role === 'administrator') {
+                Log::warning('Attempt to delete administrator blocked', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+
+                throw ValidationException::withMessages([
+                    'role' => ['Administrator cannot be deleted from the system.'],
+                ]);
+            }
+        });
+
+
     }
 
     public function role()
