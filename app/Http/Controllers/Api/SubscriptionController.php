@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Member;
 use App\Models\MemberMembership;
+use App\Models\MembershipPlan;
 use App\Models\PricingSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -44,6 +46,55 @@ class SubscriptionController extends Controller
                 ];
             }),
         ]);
+    }
+
+    public function options()
+    {
+        $members = Member::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone']);
+
+        $plans = MembershipPlan::query()
+            ->orderBy('duration_days')
+            ->get(['id', 'name', 'duration_days']);
+
+        return response()->json([
+            'members' => $members,
+            'plans' => $plans,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'member_id' => ['required', 'exists:members,id'],
+            'membership_plan_id' => ['required', 'exists:membership_plans,id'],
+            'start_date' => ['nullable', 'date'],
+        ]);
+
+        $plan = MembershipPlan::query()->findOrFail($data['membership_plan_id']);
+        $startDate = isset($data['start_date'])
+            ? Carbon::parse($data['start_date'])
+            : Carbon::today();
+        $endDate = $plan->duration_days > 0
+            ? $startDate->copy()->addDays($plan->duration_days)
+            : $startDate->copy();
+
+        $subscription = MemberMembership::create([
+            'member_id' => $data['member_id'],
+            'membership_plan_id' => $plan->id,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+            'is_expired' => false,
+            'is_on_hold' => false,
+            'hold_started_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Subscription created successfully.',
+            'subscription_id' => $subscription->id,
+        ], Response::HTTP_CREATED);
     }
 
     public function hold(MemberMembership $subscription)
