@@ -3,18 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Member;
 use App\Models\MemberMembership;
 use App\Models\MembershipPlan;
 use App\Models\PricingSetting;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
+
 
 class SubscriptionController extends Controller
 {
     public function index(Request $request)
     {
+        // If you already protect routes with middleware, you can remove this.
+        // abort_unless(auth()->check() && auth()->user()->role === 'administrator', 403);
+
         $subscriptions = MemberMembership::with(['member', 'plan'])
             ->orderByDesc('id')
             ->get();
@@ -41,7 +46,7 @@ class SubscriptionController extends Controller
                     'price' => $price,
                     'start_date' => optional($subscription->start_date)->toDateString(),
                     'end_date' => optional($subscription->end_date)->toDateString(),
-                    'is_on_hold' => $subscription->is_on_hold,
+                    'is_on_hold' => (bool) $subscription->is_on_hold,
                     'status' => $status,
                 ];
             }),
@@ -49,40 +54,46 @@ class SubscriptionController extends Controller
     }
 
     public function options()
-    {
-        $members = Member::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone']);
+{
+    $members = User::query()
+        ->where('role', 'user')
+        ->orderBy('name')
+        ->get(['id', 'name', 'email']);
 
-        $plans = MembershipPlan::query()
-            ->orderBy('duration_days')
-            ->get(['id', 'name', 'duration_days']);
+    $plans = MembershipPlan::query()
+        ->where('is_active', true) // remove this line if you don't have is_active column
+        ->orderBy('duration_days')
+        ->get(['id', 'name', 'duration_days']);
 
-        return response()->json([
-            'members' => $members,
-            'plans' => $plans,
-        ]);
-    }
+    return response()->json([
+        'members' => $members,
+        'plans' => $plans,
+    ]);
+}
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'member_id' => ['required', 'exists:members,id'],
-            'membership_plan_id' => ['required', 'exists:membership_plans,id'],
-            'start_date' => ['nullable', 'date'],
-        ]);
+    'member_id' => [
+        'required',
+        Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'user')),
+    ],
+    'membership_plan_id' => ['required', 'exists:membership_plans,id'],
+    'start_date' => ['nullable', 'date'],
+    ]);
 
         $plan = MembershipPlan::query()->findOrFail($data['membership_plan_id']);
+
         $startDate = isset($data['start_date'])
             ? Carbon::parse($data['start_date'])
             : Carbon::today();
-        $endDate = $plan->duration_days > 0
-            ? $startDate->copy()->addDays($plan->duration_days)
+
+        $endDate = ($plan->duration_days ?? 0) > 0
+            ? $startDate->copy()->addDays((int) $plan->duration_days)
             : $startDate->copy();
 
         $subscription = MemberMembership::create([
-            'member_id' => $data['member_id'],
+            'member_id' => $data['member_id'], // ✅ user id
             'membership_plan_id' => $plan->id,
             'start_date' => $startDate->toDateString(),
             'end_date' => $endDate->toDateString(),
