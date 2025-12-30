@@ -66,6 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Trainer pricing endpoints
         Route::put('/pricing/monthly', [PricingController::class, 'updateMonthly']);
+        Route::put('/pricing/quarterly', [PricingController::class, 'updateQuarterly']);
+        Route::put('/pricing/annual', [PricingController::class, 'updateAnnual']);
         Route::put('/pricing/trainers/{user}', [PricingController::class, 'updateTrainer']);
 
         // Subscription management endpoints

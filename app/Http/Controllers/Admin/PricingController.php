@@ -20,7 +20,11 @@ class PricingController extends Controller
 
         $pricingSetting = PricingSetting::firstOrCreate(
             [],
-            ['monthly_subscription_price' => 80000]
+             [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 240000,
+                'annual_subscription_price' => 960000,
+            ]
         );
 
         $trainerPrices = TrainerPricing::query()
@@ -31,6 +35,8 @@ class PricingController extends Controller
         return view('pages.pricing', [
             'trainers' => $trainers,
             'monthlyPrice' => $pricingSetting->monthly_subscription_price,
+            'quarterlyPrice' => $pricingSetting->quarterly_subscription_price,
+            'annualPrice' => $pricingSetting->annual_subscription_price,
             'defaultTrainerPrice' => 30000,
             'trainerPrices' => $trainerPrices,
         ]);
@@ -44,13 +50,58 @@ class PricingController extends Controller
 
         $pricingSetting = PricingSetting::firstOrCreate(
             [],
-            ['monthly_subscription_price' => 80000]
+            [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 800000,
+            ]
         );
 
         $pricingSetting->update($validated);
 
         return back()->with('status', 'Monthly subscription price updated.');
     }
+
+    public function updateQuarterly(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'quarterly_subscription_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 800000,
+            ]
+        );
+
+        $pricingSetting->update($validated);
+
+        return back()->with('status', 'Quarterly subscription price updated.');
+    }
+
+    public function updateAnnual(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'annual_subscription_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 800000,
+            ]
+        );
+
+        $pricingSetting->update($validated);
+
+        return back()->with('status', 'Annual subscription price updated.');
+    }
+
 
     public function updateTrainer(Request $request, User $user): RedirectResponse
     {

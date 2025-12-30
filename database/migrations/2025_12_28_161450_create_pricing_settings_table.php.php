@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('pricing_settings', function (Blueprint $table) {
             $table->id();
             $table->decimal('monthly_subscription_price', 10, 2)->default(80000);
-            $table->decimal('quarterly_subscription_price', 10, 2)->default(240000);
-            $table->decimal('annual_subscription_price', 10, 2)->default(500000);
+            $table->decimal('quarterly_subscription_price', 10, 2)->default(400000);
+            $table->decimal('annual_subscription_price', 10, 2)->default(800000);
             $table->timestamps();
         });
     }

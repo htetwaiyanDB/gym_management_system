@@ -79,8 +79,8 @@ class PricingController extends Controller
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 400000,
-                'annual_subscription_price' => 800000
+                'quarterly_subscription_price' => 240000,
+                'annual_subscription_price' => 960000,
             ]
         );
 
@@ -107,8 +107,8 @@ class PricingController extends Controller
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 400000,
-                'annual_subscription_price' => 800000
+                'quarterly_subscription_price' => 240000,
+                'annual_subscription_price' => 960000,
             ]
         );
 

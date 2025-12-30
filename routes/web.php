@@ -50,6 +50,12 @@ Route::get('/pricing', [PricingController::class, 'index'])
 Route::put('/pricing/monthly', [PricingController::class, 'updateMonthly'])
     ->middleware(['auth', 'administrator'])
     ->name('pricing.update-monthly');
+Route::put('/pricing/quarterly', [PricingController::class, 'updateQuarterly'])
+    ->middleware(['auth', 'administrator'])
+    ->name('pricing.update-quarterly');
+Route::put('/pricing/annual', [PricingController::class, 'updateAnnual'])
+    ->middleware(['auth', 'administrator'])
+    ->name('pricing.update-annual');
 Route::put('/pricing/trainers/{user}', [PricingController::class, 'updateTrainer'])
     ->middleware(['auth', 'administrator'])
     ->name('pricing.update-trainer');
