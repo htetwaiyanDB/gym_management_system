@@ -38,6 +38,9 @@ class PricingController extends Controller
         ]);
     }
 
+    /**
+     * Update Monthly Subscription Price
+     */
     public function updateMonthly(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -46,7 +49,11 @@ class PricingController extends Controller
 
         $pricingSetting = PricingSetting::firstOrCreate(
             [],
-            ['monthly_subscription_price' => 80000]
+            [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 800000,
+            ]
         );
 
         $pricingSetting->update($validated);
@@ -55,6 +62,62 @@ class PricingController extends Controller
             'message' => 'Monthly subscription price updated.',
             'pricing' => [
                 'monthly_subscription_price' => $pricingSetting->monthly_subscription_price,
+            ],
+        ]);
+    }
+
+    /**
+     * Update Quarterly Subscription Price
+     */
+    public function updateQuarterly(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'quarterly_subscription_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 800000
+            ]
+        );
+
+        $pricingSetting->update($validated);
+
+        return response()->json([
+            'message' => 'Quarterly subscription price updated.',
+            'pricing' => [
+                'quarterly_subscription_price' => $pricingSetting->quarterly_subscription_price,
+            ],
+        ]);
+    }
+
+    /**
+     * Update Annual Subscription Price
+     */
+    public function updateAnnual(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'annual_subscription_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 80000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 800000
+            ]
+        );
+
+        $pricingSetting->update($validated);
+
+        return response()->json([
+            'message' => 'Annual subscription price updated.',
+            'pricing' => [
+                'annual_subscription_price' => $pricingSetting->annual_subscription_price,
             ],
         ]);
     }

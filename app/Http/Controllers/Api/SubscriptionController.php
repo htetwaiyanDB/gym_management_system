@@ -35,7 +35,17 @@ class SubscriptionController extends Controller
                 $months = $durationDays > 0 ? max(1, (int) ceil($durationDays / 30)) : 0;
                 $price = $monthlyPrice ? $monthlyPrice * $months : null;
 
-                $isExpired = $subscription->is_expired || ($subscription->end_date && $subscription->end_date->lt($today));
+                $holdDays = 0;
+                $adjustedEndDate = $subscription->end_date;
+
+                if ($subscription->is_on_hold && $subscription->hold_started_at && $subscription->end_date) {
+                    $holdStartedAt = Carbon::parse($subscription->hold_started_at);
+                    $holdDays = max(0, $holdStartedAt->diffInDays($today));
+                    $adjustedEndDate = Carbon::parse($subscription->end_date)->addDays($holdDays);
+                }
+
+                $isExpired = ! $subscription->is_on_hold
+                    && ($subscription->is_expired || ($adjustedEndDate && $adjustedEndDate->lt($today)));
                 $status = $subscription->is_on_hold ? 'On Hold' : ($isExpired ? 'Expired' : 'Active');
 
                 return [
@@ -45,7 +55,7 @@ class SubscriptionController extends Controller
                     'duration_days' => $durationDays,
                     'price' => $price,
                     'start_date' => optional($subscription->start_date)->toDateString(),
-                    'end_date' => optional($subscription->end_date)->toDateString(),
+                    'end_date' => optional($adjustedEndDate)->toDateString(),
                     'is_on_hold' => (bool) $subscription->is_on_hold,
                     'status' => $status,
                 ];
