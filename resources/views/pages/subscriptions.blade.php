@@ -177,6 +177,7 @@
                 ...options,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                     ...(options.headers || {}),
                 },
@@ -201,12 +202,14 @@
             selectElement.innerHTML = ['<option value="">Select an option</option>', ...optionHtmlArray].join('');
         };
 
+        const subscriptionBaseUrl = '/admin/subscriptions';
+
         const loadSubscriptionOptions = async () => {
             if (subscriptionOptionsLoaded) return;
 
             try {
                 setModalMessage('Loading members and plans...');
-                const data = await apiFetch('/api/subscriptions/options');
+                const data = await apiFetch(`${subscriptionBaseUrl}/options`);
 
                 const memberOptions = (data.members || []).map((u) => {
                     const email = u.email ? ` (${u.email})` : '';
@@ -309,7 +312,7 @@
         const loadSubscriptions = async () => {
             try {
                 setMessage('Loading subscriptions...');
-                const data = await apiFetch('/api/subscriptions');
+                const data = await apiFetch(subscriptionBaseUrl);
                 renderSubscriptions(data.subscriptions || []);
                 setMessage('Subscriptions updated.', 'success');
             } catch (error) {
@@ -336,7 +339,7 @@
 
             try {
                 setModalMessage('Creating subscription...');
-                await apiFetch('/api/subscriptions', {
+                await apiFetch(subscriptionBaseUrl, {
                     method: 'POST',
                     body: JSON.stringify({
                         member_id: memberId,
@@ -364,8 +367,7 @@
 
             try {
                 setMessage('Updating subscription...');
-                await apiFetch(`/api/subscriptions/${subscriptionId}/${action}`, { method: 'POST' });
-                await loadSubscriptions();
+                await apiFetch(`${subscriptionBaseUrl}/${subscriptionId}/${action}`, { method: 'POST' });                await loadSubscriptions();
             } catch (error) {
                 console.error(error);
                 setMessage(error.message || 'Update failed.', 'error');

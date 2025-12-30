@@ -55,32 +55,34 @@ class SubscriptionController extends Controller
 
     public function options()
 {
-    $members = User::query()
-        ->where('role', 'user')
-        ->orderBy('name')
-        ->get(['id', 'name', 'email']);
 
-    $plans = MembershipPlan::query()
-        ->where('is_active', true) // remove this line if you don't have is_active column
-        ->orderBy('duration_days')
-        ->get(['id', 'name', 'duration_days']);
+        $members = User::query()
+            ->where('role', 'user')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
 
-    return response()->json([
-        'members' => $members,
-        'plans' => $plans,
-    ]);
+        $plans = MembershipPlan::query()
+            ->where('is_active', true)
+            ->orderBy('duration_days')
+            ->get(['id', 'name', 'duration_days']);
+
+        return response()->json([
+            'members' => $members,
+            'plans' => $plans,
+        ]);
+
 }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-    'member_id' => [
+        'member_id' => [
         'required',
-        Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'user')),
-    ],
-    'membership_plan_id' => ['required', 'exists:membership_plans,id'],
-    'start_date' => ['nullable', 'date'],
-    ]);
+            Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'user')),
+            ],
+            'membership_plan_id' => ['required', 'exists:membership_plans,id'],
+            'start_date' => ['nullable', 'date'],
+        ]);
 
         $plan = MembershipPlan::query()->findOrFail($data['membership_plan_id']);
 

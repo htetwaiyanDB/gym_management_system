@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('membership_plans', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->integer('duration_days');
-            $table->timestamps();
-
-});
-
+        Schema::table('membership_plans', function (Blueprint $table) {
+            $table->boolean('is_active')->default(true)->after('duration_days');
+        });
     }
 
     /**
@@ -26,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('membership_plans');
+        Schema::table('membership_plans', function (Blueprint $table) {
+            $table->dropColumn('is_active');
+        });
     }
 };
