@@ -16,20 +16,28 @@ class AdministratorMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+         $user = $request->user() ?? auth('web')->user();
 
         // Check if user is authenticated
-        if (!$user) {
-            return response()->json([
-                'message' => 'Unauthenticated'
-            ], 401);
+        if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Unauthenticated',
+                ], 401);
+            }
+
+            return redirect()->route('login');
         }
 
         // Check if user has administrator role
         if ($user->role !== 'administrator') {
-            return response()->json([
-                'message' => 'Unauthorized. Only administrator can access this endpoint.'
-            ], 403);
+             if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Unauthorized. Only administrator can access this endpoint.',
+                ], 403);
+            }
+
+            abort(403);
         }
 
         return $next($request);

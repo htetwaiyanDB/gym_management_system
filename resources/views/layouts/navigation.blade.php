@@ -22,9 +22,11 @@
                             {{ __('Users') }}
                         </x-nav-link>
 
-                        <x-nav-link :href="route('subscriptions.index')" :active="request()->routeIs('subscriptions.index')">
-                            {{ __('Subscriptions') }}
-                        </x-nav-link>
+                        @if(Route::has('subscriptions.index'))
+                            <x-nav-link :href="route('subscriptions.index')" :active="request()->routeIs('subscriptions.index')">
+                                {{ __('Subscriptions') }}
+                            </x-nav-link>
+                        @endif
 
                         <x-nav-link :href="route('pricing.index')" :active="request()->routeIs('pricing.index')">
                             {{ __('Trainer Pricing') }}
@@ -92,9 +94,11 @@
                     {{ __('Users') }}
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('subscriptions.index')" :active="request()->routeIs('subscriptions.index')">
-                    {{ __('Subscriptions') }}
-                </x-responsive-nav-link>
+                @if(Route::has('subscriptions.index'))
+                    <x-responsive-nav-link :href="route('subscriptions.index')" :active="request()->routeIs('subscriptions.index')">
+                        {{ __('Subscriptions') }}
+                    </x-responsive-nav-link>
+                @endif
 
                 <x-responsive-nav-link :href="route('pricing.index')" :active="request()->routeIs('pricing.index')">
                     {{ __('Trainer Pricing') }}

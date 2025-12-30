@@ -40,7 +40,7 @@ Route::get('/dashboard', function () {
  Route::view('/attendance', 'pages.attendance')->name('attendance.index');
     Route::view('/reports', 'pages.reports')->name('reports.index');
     Route::view('/users', 'pages.users')->middleware(['auth', 'administrator'])->name('users.index');
-    Route::view('/subscriptions', 'pages.subscriptions')->name('subscriptions.index');
+    Route::view('/subscriptions', 'pages.subscriptions');
     Route::get('/pricing', [PricingController::class, 'index'])
         ->middleware(['auth', 'administrator'])
         ->name('pricing.index');
@@ -90,7 +90,17 @@ Route::middleware(['auth', 'administrator'])->prefix('admin')->name('admin.')->g
     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+
+    Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
+        Route::get('/', [SubscriptionController::class, 'index'])->name('index');
+        Route::post('/', [SubscriptionController::class, 'store'])->name('store');
+        Route::get('/options', [SubscriptionController::class, 'options'])->name('options');
+        Route::post('/{subscription}/hold', [SubscriptionController::class, 'hold'])->name('hold');
+        Route::post('/{subscription}/resume', [SubscriptionController::class, 'resume'])->name('resume');
+    });
 });
+
+
 
 
 /*

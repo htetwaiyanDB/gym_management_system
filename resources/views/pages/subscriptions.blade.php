@@ -201,7 +201,7 @@
 
             try {
                 setModalMessage('Loading members and plans...');
-                const data = await apiFetch('/api/subscriptions/options');
+                const data = await apiFetch('/admin/subscriptions/options');
                 const memberOptions = (data.members || []).map((member) => {
                     const phone = member.phone ? ` (${member.phone})` : '';
                     return `<option value="${member.id}">${member.name}${phone}</option>`;
@@ -312,7 +312,7 @@
         const loadSubscriptions = async () => {
             try {
                 setMessage('Loading subscriptions...');
-                const data = await apiFetch('/api/subscriptions');
+                const data = await apiFetch('/admin/subscriptions');
                 renderSubscriptions(data.subscriptions || []);
                 setMessage('Subscriptions updated.', 'success');
             } catch (error) {
@@ -341,7 +341,7 @@
 
             try {
                 setModalMessage('Creating subscription...');
-                await apiFetch('/api/subscriptions', {
+                await apiFetch('/admin/subscriptions', {
                     method: 'POST',
                     body: JSON.stringify({
                         member_id: memberId,
@@ -366,7 +366,7 @@
 
             try {
                 setMessage('Updating subscription...');
-                await apiFetch(`/api/subscriptions/${subscriptionId}/${action}`, { method: 'POST' });
+                await apiFetch(`/admin/subscriptions/${subscriptionId}/${action}`, { method: 'POST' });
                 await loadSubscriptions();
             } catch (error) {
                 console.error(error);
