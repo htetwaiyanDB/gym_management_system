@@ -7,6 +7,7 @@ use App\Models\TrainerBooking;
 use App\Models\TrainerPricing;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 
 class TrainerBookingController extends Controller
 {
@@ -44,8 +45,14 @@ class TrainerBookingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'member_id' => ['required', 'exists:members,id'],
-            'trainer_id' => ['required', 'exists:trainers,id'],
+            'member_id' => [
+                'required',
+                Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', 'user')),
+            ],
+            'trainer_id' => [
+                'required',
+                Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', 'trainer')),
+            ],
             'session_datetime' => ['required', 'date'],
             'duration_minutes' => ['required', 'integer', 'min:1'],
             'sessions_count' => ['required', 'integer', 'min:1'],

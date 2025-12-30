@@ -26,11 +26,11 @@ class TrainerBooking extends Model
 
     public function member(): BelongsTo
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(User::class, 'member_id');
     }
 
     public function trainer(): BelongsTo
     {
-        return $this->belongsTo(Trainer::class);
+        return $this->belongsTo(User::class, 'trainer_id');
     }
 }
