@@ -143,7 +143,7 @@
                     >
                         @csrf
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-1.5 md:grid-cols-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200" for="member_id">
                                     Member
@@ -279,13 +279,13 @@
                                 <button
                                     type="button"
                                     id="cancel-create-booking"
-                                    class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-900"
+                                    class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-grey-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-900"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    class="inline-flex items-center rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+                                    class="inline-flex items-center rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-dark hover:bg-slate-700"
                                 >
                                     Save Booking
                                 </button>
