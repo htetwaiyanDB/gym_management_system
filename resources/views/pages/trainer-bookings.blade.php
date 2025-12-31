@@ -69,8 +69,8 @@
                                         <td class="px-4 py-3">
                                             @php
                                                 $statusClasses = $booking->status === 'confirmed'
-                                                    ? 'bg-slate-600 text-white'
-                                                    : ($booking->status === 'pending' ? 'bg-amber-500 text-white' : 'bg-gray-300 text-gray-900');
+                                                    ? 'bg-slate-600 text-dark'
+                                                    : ($booking->status === 'pending' ? 'bg-amber-500 text-dark' : 'bg-gray-300 text-gray-900');
                                             @endphp
                                             <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold {{ $statusClasses }}">
                                                 {{ ucfirst($booking->status) }}
