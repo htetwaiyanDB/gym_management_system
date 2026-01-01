@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class AttendanceController extends Controller
 {
@@ -26,8 +28,8 @@ class AttendanceController extends Controller
         return view('pages.attendance', [
             'users' => $users,
             'totalMembers' => $totalMembers,
-            'userQrData' => url('/attendance/scan?type=user'),
-            'trainerQrData' => url('/attendance/scan?type=trainer'),
+            'userQrData' => $this->qrUrl('user'),
+            'trainerQrData' => $this->qrUrl('trainer'),
         ]);
     }
 
@@ -145,6 +147,82 @@ class AttendanceController extends Controller
             ], 422);
         }
 
+        $scan = $this->recordScan($user);
+
+        return response()->json([
+            'message' => 'Scan recorded successfully.',
+            'record' => [
+                'username' => $user->name,
+                'role' => $user->role,
+                'action' => $scan->action,
+                'timestamp' => $scan->scanned_at->toIso8601String(),
+            ],
+        ]);
+    }
+
+    public function scanFromQr(Request $request)
+    {
+        $type = $request->query('type');
+        $token = $request->query('token');
+
+        if (!in_array($type, ['user', 'trainer'], true)) {
+            return $this->scanErrorResponse($request, 'Invalid QR code type.');
+        }
+
+        if (!$this->tokenMatches($type, $token)) {
+            return $this->scanErrorResponse($request, 'This QR code has expired. Please refresh and try again.');
+        }
+
+        $user = $request->user();
+
+        if (!$user || !in_array($user->role, ['user', 'trainer'], true)) {
+            return $this->scanErrorResponse($request, 'Unable to record attendance for this account.');
+        }
+
+        if ($user->role !== $type) {
+            return $this->scanErrorResponse($request, 'Your account does not match this QR code type.');
+        }
+
+        $scan = $this->recordScan($user);
+
+        $message = $scan->action === 'check_in'
+            ? 'Check-in recorded successfully.'
+            : 'Check-out recorded successfully.';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => $message,
+                'record' => [
+                    'username' => $user->name,
+                    'role' => $user->role,
+                    'action' => $scan->action,
+                    'timestamp' => $scan->scanned_at->toIso8601String(),
+                ],
+            ]);
+        }
+
+        return view('pages.attendance-scan', [
+            'status' => 'success',
+            'message' => $message,
+            'action' => $scan->action,
+            'timestamp' => $scan->scanned_at,
+        ]);
+    }
+
+    public function refreshQr(): JsonResponse
+    {
+        $userToken = $this->getQrToken('user', true);
+        $trainerToken = $this->getQrToken('trainer', true);
+
+        return response()->json([
+            'user_qr' => url('/attendance/scan?type=user&token=' . $userToken),
+            'trainer_qr' => url('/attendance/scan?type=trainer&token=' . $trainerToken),
+        ]);
+    }
+
+    private function recordScan(User $user): AttendanceScan
+    {
+
         $lastScan = AttendanceScan::query()
             ->where('user_id', $user->id)
             ->whereDate('scanned_at', Carbon::today())
@@ -155,20 +233,62 @@ class AttendanceController extends Controller
             ? 'check_out'
             : 'check_in';
 
-        $scan = AttendanceScan::create([
+        return AttendanceScan::create([
             'user_id' => $user->id,
             'action' => $nextAction,
             'scanned_at' => Carbon::now(),
         ]);
+    }
 
-        return response()->json([
-            'message' => 'Scan recorded successfully.',
-            'record' => [
-                'username' => $user->name,
-                'role' => $user->role,
-                'action' => $scan->action,
-                'timestamp' => $scan->scanned_at->toIso8601String(),
-            ],
+    private function qrUrl(string $type): string
+    {
+        $token = $this->getQrToken($type);
+
+        return url('/attendance/scan?type=' . $type . '&token=' . $token);
+    }
+
+    private function getQrToken(string $type, bool $refresh = false): string
+    {
+        $key = $this->qrTokenKey($type);
+
+        if ($refresh) {
+            $token = Str::random(40);
+            Cache::forever($key, $token);
+            return $token;
+        }
+
+        return Cache::rememberForever($key, fn () => Str::random(40));
+    }
+
+    private function qrTokenKey(string $type): string
+    {
+        return 'attendance_qr_token_' . $type;
+    }
+
+    private function tokenMatches(string $type, ?string $token): bool
+    {
+        if (!$token) {
+            return false;
+        }
+
+        $expected = Cache::get($this->qrTokenKey($type));
+
+        return $expected && hash_equals($expected, $token);
+    }
+
+    private function scanErrorResponse(Request $request, string $message)
+    {
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => $message,
+            ], 422);
+        }
+
+        return view('pages.attendance-scan', [
+            'status' => 'error',
+            'message' => $message,
+            'action' => null,
+            'timestamp' => null,
         ]);
     }
 }

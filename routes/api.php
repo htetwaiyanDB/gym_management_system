@@ -97,6 +97,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/records', [AttendanceController::class, 'records']);
             Route::get('/checked-in', [AttendanceController::class, 'checkedIn']);
             Route::post('/scan', [AttendanceController::class, 'scan']);
+            Route::post('/scan/qr', [AttendanceController::class, 'scanFromQr']);
+            Route::post('/qr/refresh', [AttendanceController::class, 'refreshQr']);
         });
     });
 });

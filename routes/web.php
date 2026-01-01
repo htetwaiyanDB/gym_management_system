@@ -92,9 +92,15 @@ Route::get('/attendance/records', [AttendanceController::class, 'records'])
 Route::get('/attendance/checked-in', [AttendanceController::class, 'checkedIn'])
     ->middleware(['auth', 'administrator'])
     ->name('attendance.checked-in');
+Route::get('/attendance/scan', [AttendanceController::class, 'scanFromQr'])
+    ->middleware('auth')
+    ->name('attendance.scan-qr');
 Route::post('/attendance/scan', [AttendanceController::class, 'scan'])
     ->middleware(['auth', 'administrator'])
     ->name('attendance.scan');
+Route::post('/attendance/qr/refresh', [AttendanceController::class, 'refreshQr'])
+    ->middleware(['auth', 'administrator'])
+    ->name('attendance.qr.refresh');
 
 Route::view('/reports', 'pages.reports')->name('reports.index');
 

@@ -78,6 +78,17 @@
                     </section>
 
                     <section id="attendance-qr-codes" class="attendance-panel hidden space-y-6">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Gym QR Codes</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">
+                                    Share these codes for members and trainers to scan on entry or exit.
+                                </p>
+                            </div>
+                            <button type="button" id="qr-refresh-button" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-dark rounded-md text-sm font-semibold hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                Refresh QR Codes
+                            </button>
+                        </div>
                         <div class="grid gap-6 md:grid-cols-2">
                             <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
                                 <div>
@@ -88,10 +99,15 @@
                                 </div>
                                 <div class="flex items-center justify-center">
                                     <img
+                                        id="member-qr-image"
                                         class="h-40 w-40 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
                                         src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($userQrData) }}"
                                         alt="Member QR code"
                                     >
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 break-all">
+                                    <span class="font-semibold text-gray-700 dark:text-gray-200">Scan link:</span>
+                                    <span id="member-qr-link">{{ $userQrData }}</span>
                                 </div>
                                 <div class="text-xs text-gray-500 dark:text-gray-400">
                                     Scan twice daily (in/out) to record attendance.
@@ -107,10 +123,15 @@
                                 </div>
                                 <div class="flex items-center justify-center">
                                     <img
+                                        id="trainer-qr-image"
                                         class="h-40 w-40 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
                                         src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($trainerQrData) }}"
                                         alt="Trainer QR code"
                                     >
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 break-all">
+                                    <span class="font-semibold text-gray-700 dark:text-gray-200">Scan link:</span>
+                                    <span id="trainer-qr-link">{{ $trainerQrData }}</span>
                                 </div>
                                 <div class="text-xs text-gray-500 dark:text-gray-400">
                                     A working day is counted when two scans are recorded.
@@ -118,11 +139,11 @@
                             </div>
                         </div>
 
-                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+                        <div class="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-6 space-y-4">
                             <div>
-                                <h4 class="text-lg font-semibold">Record a Scan</h4>
+                                <h4 class="text-lg font-semibold text-amber-900 dark:text-amber-100">Admin Scan Override</h4>
                                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                                    Use this form to record an in/out scan for a user or trainer.
+                                   Use this form only if someone cannot scan the QR. Scanning the QR will now record check-ins automatically.
                                 </p>
                             </div>
                             <div id="scan-message" class="rounded-md bg-gray-50 dark:bg-gray-900 px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
@@ -216,6 +237,12 @@
         const totalMembers = document.getElementById('total-members');
         const activeMembers = document.getElementById('active-members');
         const checkedInTable = document.getElementById('checked-in-table');
+        const refreshQrButton = document.getElementById('qr-refresh-button');
+        const memberQrImage = document.getElementById('member-qr-image');
+        const trainerQrImage = document.getElementById('trainer-qr-image');
+        const memberQrLink = document.getElementById('member-qr-link');
+        const trainerQrLink = document.getElementById('trainer-qr-link');
+        const qrBaseUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=';
         const formatTimestamp = (isoString) => {
             const date = new Date(isoString);
             return date.toLocaleString('en-US', {
@@ -391,6 +418,38 @@
             fetchAttendance();
             fetchCheckedIn();
         });
+
+        refreshQrButton.addEventListener('click', async () => {
+            refreshQrButton.disabled = true;
+            refreshQrButton.textContent = 'Refreshing...';
+
+            try {
+                const response = await fetch(`{{ route('attendance.qr.refresh') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unable to refresh QR codes.');
+                }
+
+                memberQrLink.textContent = data.user_qr;
+                trainerQrLink.textContent = data.trainer_qr;
+                memberQrImage.src = `${qrBaseUrl}${encodeURIComponent(data.user_qr)}`;
+                trainerQrImage.src = `${qrBaseUrl}${encodeURIComponent(data.trainer_qr)}`;
+            } catch (error) {
+                setScanMessage(error.message, 'error');
+            } finally {
+                refreshQrButton.disabled = false;
+                refreshQrButton.textContent = 'Refresh QR Codes';
+            }
+        });
+
 
         scanQrType.addEventListener('change', filterUsersByRole);
 
