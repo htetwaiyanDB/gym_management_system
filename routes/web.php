@@ -6,6 +6,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Admin\TrainerBookingController;
 use Illuminate\Support\Facades\Route;
+use App\Models\MemberMembership;
+use App\Models\TrainerBooking;
+use App\Models\User;
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,7 +40,45 @@ Route::get('/', function () {
 
 // Blade dashboard (admin dashboard)
 Route::get('/dashboard', function () {
-    return view('dashboard');
+        $months = collect(range(0, 5))->map(function ($offset) {
+        return Carbon::now()->subMonths(5 - $offset)->startOfMonth();
+    });
+
+    $chartLabels = $months->map(fn ($month) => $month->format('M Y'));
+
+    $userCounts = $months->map(fn ($month) => User::whereBetween('created_at', [
+        $month,
+        $month->copy()->endOfMonth(),
+    ])->count());
+
+    $subscriptionCounts = $months->map(fn ($month) => MemberMembership::whereBetween('start_date', [
+        $month->copy()->startOfMonth(),
+        $month->copy()->endOfMonth(),
+    ])->count());
+
+    $trainerBookingCounts = $months->map(fn ($month) => TrainerBooking::whereBetween('session_datetime', [
+        $month,
+        $month->copy()->endOfMonth(),
+    ])->count());
+
+    return view('dashboard', [
+        'totalUsers' => User::count(),
+        'totalSubscriptions' => MemberMembership::count(),
+        'totalTrainerBookings' => TrainerBooking::count(),
+        'chartLabels' => $chartLabels,
+        'userCounts' => $userCounts,
+        'subscriptionCounts' => $subscriptionCounts,
+        'trainerBookingCounts' => $trainerBookingCounts,
+        'latestUsers' => User::latest()->take(5)->get(),
+        'latestSubscriptions' => MemberMembership::with(['member', 'plan'])
+            ->latest('start_date')
+            ->take(5)
+            ->get(),
+        'latestTrainerBookings' => TrainerBooking::with(['member', 'trainer'])
+            ->latest('session_datetime')
+            ->take(5)
+            ->get(),
+    ]);
 })->middleware(['auth'])->name('dashboard');
 
 Route::view('/attendance', 'pages.attendance')->name('attendance.index');
