@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\AttendanceScan;
 
 class User extends Authenticatable
 {
@@ -110,5 +111,10 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function attendanceScans()
+    {
+        return $this->hasMany(AttendanceScan::class);
     }
 }

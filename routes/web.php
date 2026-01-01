@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\PricingController;
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Admin\TrainerBookingController;
@@ -82,8 +83,21 @@ Route::get('/dashboard', function () {
     ]);
 })->middleware(['auth'])->name('dashboard');
 
-Route::view('/attendance', 'pages.attendance')->name('attendance.index');
+Route::get('/attendance', [AttendanceController::class, 'index'])
+    ->middleware(['auth', 'administrator'])
+    ->name('attendance.index');
+Route::get('/attendance/records', [AttendanceController::class, 'records'])
+    ->middleware(['auth', 'administrator'])
+    ->name('attendance.records');
+Route::get('/attendance/checked-in', [AttendanceController::class, 'checkedIn'])
+    ->middleware(['auth', 'administrator'])
+    ->name('attendance.checked-in');
+Route::post('/attendance/scan', [AttendanceController::class, 'scan'])
+    ->middleware(['auth', 'administrator'])
+    ->name('attendance.scan');
+
 Route::view('/reports', 'pages.reports')->name('reports.index');
+
 Route::view('/users', 'pages.users')->middleware(['auth', 'administrator'])->name('users.index');
 
 Route::view('/subscriptions', 'pages.subscriptions')
