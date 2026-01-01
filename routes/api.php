@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\TrainerBookingController;
@@ -10,6 +11,10 @@ use App\Http\Controllers\Api\TrainerBookingController;
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
 Route::post('/login', [AuthController::class, 'login']);
+
+// Public blog endpoints
+Route::get('/blogs', [BlogController::class, 'index']);
+Route::get('/blogs/{slug}', [BlogController::class, 'show']);
 
 // System version endpoint (public - no authentication required)
 Route::get('/version', function () {

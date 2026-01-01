@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -84,9 +85,11 @@ Route::get('/dashboard', function () {
 Route::view('/attendance', 'pages.attendance')->name('attendance.index');
 Route::view('/reports', 'pages.reports')->name('reports.index');
 Route::view('/users', 'pages.users')->middleware(['auth', 'administrator'])->name('users.index');
+
 Route::view('/subscriptions', 'pages.subscriptions')
     ->middleware(['auth', 'administrator'])
     ->name('subscriptions.index');
+
 Route::get('/pricing', [PricingController::class, 'index'])
     ->middleware(['auth', 'administrator'])
     ->name('pricing.index');
@@ -102,6 +105,7 @@ Route::put('/pricing/annual', [PricingController::class, 'updateAnnual'])
 Route::put('/pricing/trainers/{user}', [PricingController::class, 'updateTrainer'])
     ->middleware(['auth', 'administrator'])
     ->name('pricing.update-trainer');
+
 Route::get('/trainer-bookings', [TrainerBookingController::class, 'index'])
     ->middleware(['auth', 'administrator'])
     ->name('trainer-bookings.index');
@@ -111,8 +115,27 @@ Route::post('/trainer-bookings', [TrainerBookingController::class, 'store'])
 Route::patch('/trainer-bookings/{booking}/mark-paid', [TrainerBookingController::class, 'markPaid'])
     ->middleware(['auth', 'administrator'])
     ->name('trainer-bookings.mark-paid');
+
 Route::view('/messages', 'pages.messages')->name('messages.index');
-Route::view('/blogs', 'pages.blogs')->name('blogs.index');
+
+Route::get('/blogs', [BlogController::class, 'index'])
+    ->middleware(['auth', 'administrator'])
+    ->name('blogs.index');
+Route::get('/blogs/create', [BlogController::class, 'create'])
+    ->middleware(['auth', 'administrator'])
+    ->name('blogs.create');
+Route::post('/blogs', [BlogController::class, 'store'])
+    ->middleware(['auth', 'administrator'])
+    ->name('blogs.store');
+Route::get('/blogs/{blog}/edit', [BlogController::class, 'edit'])
+    ->middleware(['auth', 'administrator'])
+    ->name('blogs.edit');
+Route::put('/blogs/{blog}', [BlogController::class, 'update'])
+    ->middleware(['auth', 'administrator'])
+    ->name('blogs.update');
+Route::delete('/blogs/{blog}', [BlogController::class, 'destroy'])
+    ->middleware(['auth', 'administrator'])
+    ->name('blogs.destroy');
 
 /*
 |--------------------------------------------------------------------------

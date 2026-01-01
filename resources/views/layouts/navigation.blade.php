@@ -36,6 +36,10 @@
                             {{ __('Trainer Bookings') }}
                         </x-nav-link>
 
+                        <x-nav-link :href="route('blogs.index')" :active="request()->routeIs('blogs.*')">
+                            {{ __('Blogs') }}
+                        </x-nav-link>
+
                     @endif
                 </div>
             </div>
@@ -112,6 +116,11 @@
                 <x-responsive-nav-link :href="route('trainer-bookings.index')" :active="request()->routeIs('trainer-bookings.*')">
                     {{ __('Trainer Bookings') }}
                 </x-responsive-nav-link>
+
+                 <x-responsive-nav-link :href="route('blogs.index')" :active="request()->routeIs('blogs.*')">
+                    {{ __('Blogs') }}
+                </x-responsive-nav-link>
+
 
             @endif
         </div>
