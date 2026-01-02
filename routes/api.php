@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\TrainerBookingController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\TrainerController;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
@@ -59,6 +60,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Root user can create other users (admission, nurse, doctor)
     Route::post('/register', [AuthController::class, 'register'])
         ->middleware('administrator');
+
+    Route::middleware('trainer')->prefix('trainer')->group(function () {
+        Route::get('/home', [TrainerController::class, 'home']);
+        Route::get('/check-in', [TrainerController::class, 'checkIn']);
+        Route::post('/check-in/scan', [TrainerController::class, 'scanFromQr']);
+        Route::get('/subscriptions', [TrainerController::class, 'subscriptions']);
+        Route::get('/messages', [TrainerController::class, 'messages']);
+        Route::post('/messages', [TrainerController::class, 'sendMessage']);
+    });
 
     // User management endpoints - ONLY accessible by administrator
     Route::middleware('administrator')->group(function () {

@@ -217,6 +217,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'role:trainer'])->prefix('trainer')->name('trainer.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Trainer\TrainerDashboardController::class, 'home'])->name('home');
+    Route::get('/check-in', [\App\Http\Controllers\Trainer\TrainerDashboardController::class, 'checkIn'])->name('check-in');
+    Route::get('/subscriptions', [\App\Http\Controllers\Trainer\TrainerDashboardController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/messages', [\App\Http\Controllers\Trainer\TrainerDashboardController::class, 'messages'])->name('messages');
+    Route::post('/messages', [\App\Http\Controllers\Trainer\TrainerDashboardController::class, 'sendMessage'])->name('messages.store');
+});
+
+
 Route::middleware(['auth', 'administrator'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/deleted', [UserController::class, 'deleted'])->name('users.deleted');
