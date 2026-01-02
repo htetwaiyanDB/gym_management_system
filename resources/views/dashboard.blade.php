@@ -1,8 +1,26 @@
 <x-app-layout>
    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Dashboard') }}
+            </h2>
+            @if (auth()->user()?->role === 'administrator')
+                <div class="flex items-center gap-3">
+                    <a
+                        class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-dark shadow-sm transition hover:bg-emerald-500"
+                        href="{{ route('dashboard.export', 'excel') }}"
+                    >
+                        Export Excel
+                    </a>
+                    <a
+                        class="inline-flex items-center rounded-lg border border-emerald-600 px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-50"
+                        href="{{ route('dashboard.export', 'json') }}"
+                    >
+                        Export JSON
+                    </a>
+                </div>
+            @endif
+        </div>
     </x-slot>
 
             <div class="py-10">

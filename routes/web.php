@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\PricingController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Admin\TrainerBookingController;
+use App\Http\Controllers\Admin\DashboardReportController;
 use Illuminate\Support\Facades\Route;
 use App\Models\MemberMembership;
 use App\Models\TrainerBooking;
@@ -104,6 +106,11 @@ Route::get('/dashboard', function () {
             ->get(),
     ]);
 })->middleware(['auth'])->name('dashboard');
+
+Route::get('/dashboard/export/{format}', [DashboardReportController::class, 'export'])
+    ->middleware(['auth', 'administrator'])
+    ->whereIn('format', ['excel', 'json'])
+    ->name('dashboard.export');
 
 Route::get('/attendance', [AttendanceController::class, 'index'])
     ->middleware(['auth', 'administrator'])

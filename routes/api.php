@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DashboardReportController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\PricingController;
@@ -104,6 +105,8 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         Route::get('/dashboard/attendance-report', [DashboardController::class, 'attendanceReport']);
+        Route::get('/dashboard/export/{format}', [DashboardReportController::class, 'export'])
+            ->whereIn('format', ['excel', 'json']);
 
         Route::get('/messages', [MessageController::class, 'conversations']);
         Route::get('/messages/{user}', [MessageController::class, 'thread']);
