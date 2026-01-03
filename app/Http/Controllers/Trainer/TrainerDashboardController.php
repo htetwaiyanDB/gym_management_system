@@ -8,6 +8,7 @@ use App\Models\BlogPost;
 use App\Models\Message;
 use App\Models\TrainerBooking;
 use App\Models\User;
+use App\Notifications\NewMessageNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -109,11 +110,15 @@ class TrainerDashboardController extends Controller
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => $trainer->id,
             'recipient_id' => $admin->id,
             'body' => $validated['body'],
         ]);
+
+        if ($this->shouldNotify($admin)) {
+            $admin->notify(new NewMessageNotification($message, $trainer));
+        }
 
         return back()->with('status', 'Message sent to admin.');
     }
@@ -142,5 +147,10 @@ class TrainerDashboardController extends Controller
     private function qrTokenKey(string $type): string
     {
         return 'attendance_qr_token_' . $type;
+    }
+
+    private function shouldNotify(User $user): bool
+    {
+        return $user->role === 'administrator' || $user->notifications_enabled;
     }
 }

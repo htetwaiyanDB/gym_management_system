@@ -12,7 +12,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::select('id', 'name', 'email', 'role', 'email_verified_at', 'created_at', 'updated_at')
+        $users = User::select('id', 'name', 'email', 'phone', 'role', 'email_verified_at', 'notifications_enabled', 'created_at', 'updated_at')
             ->orderByDesc('created_at')
             ->get();
 
@@ -40,6 +40,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['required_unless:role,administrator', 'nullable', 'string', 'max:20', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', Rule::in(['administrator', 'trainer', 'user'])],
         ]);
@@ -51,7 +52,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User created successfully',
-            'user' => $user->only(['id', 'name', 'email', 'role', 'created_at']),
+            'user' => $user->only(['id', 'name', 'email', 'phone', 'role', 'created_at']),
         ], 201);
     }
 
@@ -64,8 +65,10 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['sometimes', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
             'role' => ['sometimes', Rule::in(['administrator', 'trainer', 'user'])],
+            'notifications_enabled' => ['sometimes', 'boolean'],
         ]);
 
         // ✅ Only hash if password provided
@@ -81,7 +84,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user->only(['id', 'name', 'email', 'role', 'updated_at']),
+            'user' => $user->only(['id', 'name', 'email', 'phone', 'role', 'notifications_enabled', 'updated_at']),
         ]);
     }
 

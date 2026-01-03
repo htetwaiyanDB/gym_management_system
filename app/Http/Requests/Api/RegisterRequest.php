@@ -29,6 +29,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
             'password' => [
                 'required',
                 'string',
@@ -57,6 +58,7 @@ class RegisterRequest extends FormRequest
             'password.confirmed' => 'The password confirmation does not match.',
             'password.min' => 'The password must be at least 8 characters.',
             'role.in' => 'Invalid role selected. Role must be trainer or user.',
+            'phone.unique' => 'The phone number has already been taken.',
         ];
     }
 
@@ -71,6 +73,13 @@ class RegisterRequest extends FormRequest
                 'email' => strtolower(trim($this->email)),
             ]);
         }
+
+        if ($this->has('phone')) {
+            $this->merge([
+                'phone' => trim($this->phone),
+            ]);
+        }
+
 
         // Trim and sanitize name
         if ($this->has('name')) {

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
+use App\Models\User;
+use App\Notifications\BlogPostPublished;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+
 
 class BlogController extends Controller
 {
@@ -37,7 +40,11 @@ class BlogController extends Controller
 
         $validated = $this->syncPublishDates($validated);
 
-        BlogPost::create($validated);
+        $post = BlogPost::create($validated);
+
+        if ($post->is_published) {
+            $this->notifyAudience($post);
+        }
 
         return redirect()
             ->route('blogs.index')
@@ -65,7 +72,12 @@ class BlogController extends Controller
 
         $validated = $this->syncPublishDates($validated, $blog->published_at);
 
+        $wasPublished = $blog->is_published;
         $blog->update($validated);
+
+        if (! $wasPublished && $blog->is_published) {
+            $this->notifyAudience($blog);
+        }
 
         return redirect()
             ->route('blogs.index')
@@ -144,5 +156,14 @@ class BlogController extends Controller
             ->save($fullPath);
 
         return $path;
+    }
+
+    private function notifyAudience(BlogPost $post): void
+    {
+        User::query()
+            ->whereIn('role', ['trainer', 'user'])
+            ->where('notifications_enabled', true)
+            ->get()
+            ->each(fn (User $user) => $user->notify(new BlogPostPublished($post)));
     }
 }

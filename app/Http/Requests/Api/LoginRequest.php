@@ -31,7 +31,7 @@ class LoginRequest extends FormRequest
         $captchaLength = config('captcha.default.length', 6);
 
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             //'captcha'  => ['required', 'captcha', "digits:{$captchaLength}"],
         ];
@@ -61,6 +61,12 @@ class LoginRequest extends FormRequest
                 'email' => strtolower(trim($this->email)),
             ]);
         }
+
+        if (! $this->has('email') && $this->has('phone')) {
+            $this->merge([
+                'email' => trim($this->phone),
+            ]);
+        }
     }
 
     /**
@@ -73,10 +79,28 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         // Always hash password check timing to prevent enumeration
-        $user = User::where('email', $this->email)->first();
+        $identifier = $this->loginIdentifier();
+        $field = $this->identifierField($identifier);
+        $user = User::where($field, $identifier)->first();
 
         // Use constant-time comparison to prevent timing attacks
         $passwordValid = $user && Hash::check($this->password, $user->password);
+
+        if ($user && $field === 'phone' && $user->role === 'administrator') {
+            RateLimiter::hit($this->throttleKey(), 60);
+
+            throw ValidationException::withMessages([
+                'email' => ['Administrators must sign in with their email address.'],
+            ]);
+        }
+
+        if ($user && $field === 'email' && $user->role !== 'administrator') {
+            RateLimiter::hit($this->throttleKey(), 60);
+
+            throw ValidationException::withMessages([
+                'email' => ['Please sign in with your phone number.'],
+            ]);
+        }
 
         if (! $passwordValid) {
             // Rate limit: 5 attempts per 60 seconds (1 minute)
@@ -84,7 +108,8 @@ class LoginRequest extends FormRequest
 
             // Log failed login attempt for security auditing
             Log::warning('Failed login attempt', [
-                'email' => $this->email,
+                'identifier' => $identifier,
+                'login_type' => $field,
                 'ip' => $this->ip(),
                 'user_agent' => $this->userAgent(),
             ]);
@@ -100,7 +125,8 @@ class LoginRequest extends FormRequest
         // Log successful login
         Log::info('Successful login', [
             'user_id' => $user->id,
-            'email' => $user->email,
+            'identifier' => $identifier,
+            'login_type' => $field,
             'role' => $user->role,
             'ip' => $this->ip(),
         ]);
@@ -123,6 +149,7 @@ class LoginRequest extends FormRequest
 
         Log::warning('Login rate limit exceeded', [
             'email' => $this->email,
+            'identifier' => $this->loginIdentifier(),
             'ip' => $this->ip(),
             'seconds' => $seconds,
         ]);
@@ -142,6 +169,16 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')) . '|login|' . $this->ip());
+        return Str::transliterate(Str::lower($this->loginIdentifier()) . '|login|' . $this->ip());
+    }
+
+    public function loginIdentifier(): string
+    {
+        return trim((string) $this->input('email'));
+    }
+
+    public function identifierField(string $identifier): string
+    {
+        return filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
     }
 }

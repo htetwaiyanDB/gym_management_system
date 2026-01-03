@@ -7,6 +7,7 @@ use App\Models\AttendanceScan;
 use App\Models\BlogPost;
 use App\Models\Message;
 use App\Models\TrainerBooking;
+use App\Notifications\NewMessageNotification;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -177,11 +178,15 @@ class TrainerController extends Controller
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => $trainer->id,
             'recipient_id' => $admin->id,
             'body' => $validated['body'],
         ]);
+
+        if ($this->shouldNotify($admin)) {
+            $admin->notify(new NewMessageNotification($message, $trainer));
+        }
 
         return response()->json([
             'status' => 'sent',
@@ -225,6 +230,11 @@ class TrainerController extends Controller
     private function qrTokenKey(string $type): string
     {
         return 'attendance_qr_token_' . $type;
+    }
+
+    private function shouldNotify(User $user): bool
+    {
+        return $user->role === 'administrator' || $user->notifications_enabled;
     }
 
     private function adminUser(): ?User

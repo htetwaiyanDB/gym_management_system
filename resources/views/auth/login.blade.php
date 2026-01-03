@@ -16,13 +16,13 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email -->
+        <!-- Email or Phone-->
         <div>
-            <x-input-label for="email" value="Email" />
+            <x-input-label for="email" value="Email or Phone" />
             <x-text-input
                 id="email"
                 class="block mt-1 w-full"
-                type="email"
+                type="text"
                 name="email"
                 :value="old('email')"
                 required

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\User;
+use App\Notifications\NewMessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -105,12 +106,19 @@ class MessageController extends Controller
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => $admin->id,
             'recipient_id' => $user->id,
             'body' => $validated['body'],
         ]);
 
+        if ($this->shouldNotify($user)) {
+            $user->notify(new NewMessageNotification($message, $admin));
+        }
         return response(['status' => 'sent'], 201);
+    }
+        private function shouldNotify(User $user): bool
+    {
+        return $user->role === 'administrator' || $user->notifications_enabled;
     }
 }

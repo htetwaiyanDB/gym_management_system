@@ -36,6 +36,12 @@ class UpdateProfileRequest extends FormRequest
                 'max:255',
                 'unique:users,email,' . $userId, // Ignore current user's email
             ],
+            'phone' => [
+                'sometimes',
+                'string',
+                'max:20',
+                'unique:users,phone,' . $userId,
+            ],
             'password' => [
                 'sometimes',
                 'string',
@@ -47,6 +53,7 @@ class UpdateProfileRequest extends FormRequest
                     ->uncompromised(),
             ],
             'password_confirmation' => ['required_with:password', 'string'],
+            'notifications_enabled' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -60,6 +67,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'name.regex' => 'The name field may only contain letters and spaces.',
             'email.unique' => 'The email has already been taken.',
+            'phone.unique' => 'The phone number has already been taken.',
             'password.confirmed' => 'The password confirmation does not match.',
             'password.min' => 'The password must be at least 8 characters.',
             'password_confirmation.required_with' => 'The password confirmation is required when password is provided.',
@@ -77,6 +85,13 @@ class UpdateProfileRequest extends FormRequest
                 'email' => strtolower(trim($this->email)),
             ]);
         }
+
+        if ($this->has('phone')) {
+            $this->merge([
+                'phone' => trim($this->phone),
+            ]);
+        }
+
 
         // Trim and sanitize name if provided
         if ($this->has('name')) {

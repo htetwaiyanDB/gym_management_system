@@ -5,6 +5,7 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +30,7 @@ class LoginRequest extends FormRequest
         $captchaLength = config('captcha.default.length', 6);
 
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'captcha'  => ['required', 'captcha', "digits:{$captchaLength}"],
         ];
@@ -57,7 +58,35 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $identifier = $this->loginIdentifier();
+        $field = $this->identifierField($identifier);
+        $user = User::query()->where($field, $identifier)->first();
+
+        if (! $user) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        if ($field === 'phone' && $user->role === 'administrator') {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Administrators must sign in with their email address.',
+            ]);
+        }
+
+        if ($field === 'email' && $user->role !== 'administrator') {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Please sign in with your phone number.',
+            ]);
+        }
+
+        if (! Auth::attempt([$field => $identifier, 'password' => $this->password], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -96,6 +125,16 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+    return Str::transliterate(Str::lower($this->loginIdentifier()).'|'.$this->ip());
+    }
+
+    private function loginIdentifier(): string
+    {
+        return trim((string) $this->input('email'));
+    }
+
+    private function identifierField(string $identifier): string
+    {
+        return filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
     }
 }

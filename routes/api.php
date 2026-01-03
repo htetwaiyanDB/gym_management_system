@@ -8,10 +8,12 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TrainerBookingController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\TrainerController;
+use App\Http\Controllers\Api\UserMessageController;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
@@ -44,7 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
                 'role' => $user->role,
+                'notifications_enabled' => $user->notifications_enabled,
             ]
         ]);
     });
@@ -55,6 +59,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Update profile endpoint - Users can update their own profile
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
     Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{notificationId}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+
+    Route::get('/my/messages', [UserMessageController::class, 'messages']);
+    Route::post('/my/messages', [UserMessageController::class, 'sendMessage']);
+
 
     // Registration endpoint - ONLY accessible by administrator
     // Root user can create other users (admission, nurse, doctor)

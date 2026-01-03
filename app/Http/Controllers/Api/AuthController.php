@@ -47,6 +47,7 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $request->validated('name'),
             'email'    => $request->validated('email'),
+            'phone'    => $request->validated('phone'),
             'password' => $request->validated('password'),
             'role'     => $role,
         ]);
@@ -68,6 +69,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
                 'role' => $user->role,
                 'created_at' => $user->created_at,
             ]
@@ -84,7 +86,9 @@ class AuthController extends Controller
         $request->authenticate();
 
         // Get the authenticated user (already validated in LoginRequest)
-        $user = User::where('email', $request->validated('email'))->firstOrFail();
+        $identifier = $request->loginIdentifier();
+        $field = $request->identifierField($identifier);
+        $user = User::where($field, $identifier)->firstOrFail();
 
         // Create token with expiration (24 hours)
         $expiresAt = now()->addHours(24);
@@ -98,6 +102,7 @@ class AuthController extends Controller
             'user'    => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'phone' => $user->phone,
                 'email' => $user->email,
                 'role' => $user->role,
             ]
@@ -158,6 +163,16 @@ class AuthController extends Controller
             }
         }
 
+        if ($request->has('phone')) {
+            $user->phone = $request->validated('phone');
+            $updatedFields[] = 'phone';
+        }
+
+        if ($request->has('notifications_enabled')) {
+            $user->notifications_enabled = $request->validated('notifications_enabled');
+            $updatedFields[] = 'notifications_enabled';
+        }
+
         // Update password if provided
         if ($request->has('password')) {
             $user->password = $request->validated('password');
@@ -182,8 +197,10 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'phone' => $user->phone,
                     'role' => $user->role,
                     'email_verified_at' => $user->email_verified_at,
+                    'notifications_enabled' => $user->notifications_enabled,
                     'updated_at' => $user->updated_at,
                 ]
             ], 200);
@@ -196,7 +213,9 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
                 'role' => $user->role,
+                'notifications_enabled' => $user->notifications_enabled,
             ]
         ], 200);
     }
@@ -216,7 +235,7 @@ class AuthController extends Controller
         if ($showDeleted) {
             // Get all soft-deleted users, excluding sensitive fields
             $users = User::onlyTrashed()
-                ->select('id', 'name', 'email', 'role', 'email_verified_at', 'created_at', 'updated_at', 'deleted_at')
+                ->select('id', 'name', 'email', 'phone', 'role', 'email_verified_at', 'notifications_enabled', 'created_at', 'updated_at', 'deleted_at')
                 ->orderBy('deleted_at', 'desc')
                 ->get();
 

@@ -5,8 +5,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
+        {{ __("Update your account's profile information, phone number, and notification preferences.") }}        </p>
     </header>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
@@ -46,6 +45,28 @@
                 </div>
             @endif
         </div>
+
+        <div>
+            <x-input-label for="phone" :value="__('Phone Number')" />
+            <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $user->phone)" autocomplete="tel" />
+            <x-input-error class="mt-2" :messages="$errors->get('phone')" />
+        </div>
+
+        @if ($user->role !== 'administrator')
+            <div class="flex items-center gap-3">
+                <input type="hidden" name="notifications_enabled" value="0" />
+                <input
+                    id="notifications_enabled"
+                    name="notifications_enabled"
+                    type="checkbox"
+                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                    value="1"
+                    @checked(old('notifications_enabled', $user->notifications_enabled))
+                />
+                <x-input-label for="notifications_enabled" :value="__('Enable notifications')" />
+            </div>
+        @endif
+
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>

@@ -24,8 +24,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role',
+        'notifications_enabled',
         'email_verified_at',
         'email_verification_code',
         'email_verification_expires_at',
@@ -41,6 +43,7 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'email_verified_at' => 'datetime',
+            'notifications_enabled' => 'boolean',
         ];
     }
 
