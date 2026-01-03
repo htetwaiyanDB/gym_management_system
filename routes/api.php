@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\TrainerController;
 use App\Http\Controllers\Api\UserMessageController;
+use App\Http\Controllers\Api\UserController;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
@@ -80,6 +81,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/subscriptions', [TrainerController::class, 'subscriptions']);
         Route::get('/messages', [TrainerController::class, 'messages']);
         Route::post('/messages', [TrainerController::class, 'sendMessage']);
+    });
+
+    Route::middleware('role:user')->prefix('user')->group(function () {
+        Route::get('/home', [UserController::class, 'home']);
+        Route::get('/check-in', [UserController::class, 'checkIn']);
+        Route::post('/check-in/scan', [UserController::class, 'scanFromQr']);
+        Route::get('/subscriptions', [UserController::class, 'subscriptions']);
+        Route::get('/messages', [UserController::class, 'messages']);
+        Route::post('/messages', [UserController::class, 'sendMessage']);
     });
 
     // User management endpoints - ONLY accessible by administrator

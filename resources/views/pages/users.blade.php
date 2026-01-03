@@ -217,7 +217,7 @@
                         <td class="px-4 py-2">${user.id}</td>
                         <td class="px-4 py-2">${user.name}</td>
                         <td class="px-4 py-2">${user.email}</td>
-                        td class="px-4 py-2">${user.phone || '-'}</td>
+                        <td class="px-4 py-2">${user.phone || '-'}</td>
                         <td class="px-4 py-2">${user.role}</td>
                         <td class="px-4 py-2">${status}</td>
                         <td class="px-4 py-2">${actions}</td>

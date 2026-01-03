@@ -37,6 +37,10 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('trainer.home'));
         }
 
+        if ($user?->role === 'user') {
+            return redirect()->intended(route('user.home'));
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 

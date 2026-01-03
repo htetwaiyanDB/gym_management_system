@@ -8,8 +8,13 @@
                     $user = Auth::user();
                     $isAdmin = $user?->role === 'administrator';
                     $isTrainer = $user?->role === 'trainer';
-                    $homeRoute = $isTrainer ? route('trainer.home') : route('dashboard');
-                    $homeActive = $isTrainer ? request()->routeIs('trainer.home') : request()->routeIs('dashboard');
+                    $isUser = $user?->role === 'user';
+                    $homeRoute = $isTrainer
+                        ? route('trainer.home')
+                        : ($isUser ? route('user.home') : route('dashboard'));
+                    $homeActive = $isTrainer
+                        ? request()->routeIs('trainer.home')
+                        : ($isUser ? request()->routeIs('user.home') : request()->routeIs('dashboard'));
                 @endphp
 
                 <div class="shrink-0 flex items-center">
@@ -22,7 +27,7 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
 
                     <x-nav-link :href="$homeRoute" :active="$homeActive">
-                        {{ $isTrainer ? __('Home') : __('Dashboard') }}
+                        {{ $isAdmin ? __('Dashboard') : __('Home') }}
                     </x-nav-link>
 
                     @if($isAdmin)
@@ -68,6 +73,24 @@
                         <x-nav-link :href="route('trainer.messages')" :active="request()->routeIs('trainer.messages')">
                             {{ __('Messages') }}
                         </x-nav-link>
+
+                        <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
+                            {{ __('Settings') }}
+                        </x-nav-link>
+
+                    @elseif($isUser)
+                        <x-nav-link :href="route('user.check-in')" :active="request()->routeIs('user.check-in')">
+                            {{ __('Check In') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('user.subscriptions')" :active="request()->routeIs('user.subscriptions')">
+                            {{ __('Subscriptions') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('user.messages')" :active="request()->routeIs('user.messages')">
+                            {{ __('Messages') }}
+                        </x-nav-link>
+
 
                         <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                             {{ __('Settings') }}
@@ -127,7 +150,7 @@
         <div class="pt-2 pb-3 space-y-1">
 
             <x-responsive-nav-link :href="$homeRoute" :active="$homeActive">
-                {{ $isTrainer ? __('Home') : __('Dashboard') }}
+                {{ $isAdmin ? __('Dashboard') : __('Home') }}
             </x-responsive-nav-link>
 
             @if($isAdmin)
@@ -173,6 +196,24 @@
                 <x-responsive-nav-link :href="route('trainer.messages')" :active="request()->routeIs('trainer.messages')">
                     {{ __('Messages') }}
                 </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
+                    {{ __('Settings') }}
+                </x-responsive-nav-link>
+
+            @elseif($isUser)
+                <x-responsive-nav-link :href="route('user.check-in')" :active="request()->routeIs('user.check-in')">
+                    {{ __('Check In') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('user.subscriptions')" :active="request()->routeIs('user.subscriptions')">
+                    {{ __('Subscriptions') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('user.messages')" :active="request()->routeIs('user.messages')">
+                    {{ __('Messages') }}
+                </x-responsive-nav-link>
+
 
                 <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                     {{ __('Settings') }}

@@ -225,6 +225,14 @@ Route::middleware(['auth', 'role:trainer'])->prefix('trainer')->name('trainer.')
     Route::post('/messages', [\App\Http\Controllers\Trainer\TrainerDashboardController::class, 'sendMessage'])->name('messages.store');
 });
 
+Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\User\UserDashboardController::class, 'home'])->name('home');
+    Route::get('/check-in', [\App\Http\Controllers\User\UserDashboardController::class, 'checkIn'])->name('check-in');
+    Route::get('/subscriptions', [\App\Http\Controllers\User\UserDashboardController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/messages', [\App\Http\Controllers\User\UserDashboardController::class, 'messages'])->name('messages');
+    Route::post('/messages', [\App\Http\Controllers\User\UserDashboardController::class, 'sendMessage'])->name('messages.store');
+});
+
 
 Route::middleware(['auth', 'administrator'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
