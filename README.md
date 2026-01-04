@@ -1,59 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Gym Management System
 
-## About Laravel
+A Laravel-based gym management platform that supports member and trainer onboarding, subscriptions, trainer bookings, QR attendance tracking, blog content, and admin reporting. The project ships with a REST API secured by Laravel Sanctum and a Vite-powered frontend build.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Member,Trainer and admin authentication with token-based APIs (Laravel Sanctum)
+- Attendance tracking with QR/scan support
+- Subscription plans, pricing management, and renewals
+- Trainer profiles and booking workflows
+- Admin dashboard with export/reporting endpoints
+- Blog/content management
+- CAPTCHA integrations for user flows
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+- **Backend:** Laravel 12, PHP 8.2
+- **Frontend tooling:** Vite, Tailwind CSS, Alpine.js
+- **Auth:** Laravel Sanctum
+- **Utilities:** Intervention Image, CAPTCHA providers
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Getting Started
+### Prerequisites
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.2+
+- Composer
+- Node.js 18+ and npm
+- A database supported by Laravel (MySQL/PostgreSQL/SQLite)
 
-## Laravel Sponsors
+### Setup
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+```
 
-### Premium Partners
+Configure your database credentials in `.env`, then run migrations:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+php artisan migrate
+```
+### Development
 
-## Contributing
+Run the full dev stack (Laravel server, queue worker, logs, and Vite):
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+composer run dev
+```
 
-## Code of Conduct
+If you only need the API:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan serve
+```
 
-## Security Vulnerabilities
+### Build Assets
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+npm run build
+```
+
+### Tests
+
+```bash
+composer test
+```
+
+## API Documentation
+
+API reference lives in [`GYM_API_DOCUMENTATION_v2.md`](GYM_API_DOCUMENTATION_v2.md). Base URLs are:
+
+- Development: `http://127.0.0.1:8000/api`
+- Production: `https://your-domain.com/api`
+
+## Project Structure
+
+- `app/` — Laravel application code
+- `routes/` — Web and API route definitions
+- `database/` — Migrations, factories, and seeders
+- `resources/` — Frontend assets and Blade templates
+- `public/` — Public web root
+- `tests/` — Automated tests
+
+## Environment Notes
+
+- The API expects `Accept: application/json` and `Authorization: Bearer {token}` headers for protected endpoints.
+- Queue processing is enabled in the dev script (`composer run dev`).
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project uses the MIT license.
