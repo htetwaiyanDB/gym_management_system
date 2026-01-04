@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Notifications\BlogPostPublished;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -106,6 +107,7 @@ class BlogController extends Controller
             'cover_image' => ['nullable', 'image', 'max:2048'],
             'is_published' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
+            'timezone_offset' => ['nullable', 'integer'],
         ]);
     }
 
@@ -114,6 +116,14 @@ class BlogController extends Controller
         $isPublished = (bool) ($validated['is_published'] ?? false);
         $validated['is_published'] = $isPublished;
         $publishedAt = $validated['published_at'] ?? null;
+        $timezoneOffset = $validated['timezone_offset'] ?? null;
+
+        if ($publishedAt) {
+            $publishedAt = $this->normalizePublishedAt($publishedAt, $timezoneOffset);
+            $validated['published_at'] = $publishedAt;
+        }
+
+        unset($validated['timezone_offset']);
 
         if (!$isPublished && $publishedAt) {
             $isPublished = true;
@@ -130,6 +140,20 @@ class BlogController extends Controller
 
         return $validated;
     }
+
+    private function normalizePublishedAt(string $publishedAt, ?int $timezoneOffset): \Carbon\CarbonInterface
+    {
+        $timezone = config('app.timezone');
+
+        if ($timezoneOffset !== null) {
+            return Carbon::createFromFormat('Y-m-d\TH:i', $publishedAt, 'UTC')
+                ->addMinutes($timezoneOffset)
+                ->setTimezone($timezone);
+        }
+
+        return Carbon::parse($publishedAt, $timezone);
+    }
+
 
     private function generateUniqueSlug(string $title, ?int $existingId = null): string
     {
