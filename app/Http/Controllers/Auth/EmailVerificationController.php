@@ -9,19 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 class EmailVerificationController extends Controller
 {
-    public function show(Request $request)
+    public function show()
     {
-        $verificationCode = null;
-        $email = $request->session()->get('email');
-
-        if ($email) {
-            $user = User::where('email', $email)->first();
-            $verificationCode = $user?->email_verification_code;
-        }
-
-        return view('auth.verify', [
-            'verificationCode' => $verificationCode,
-        ]);
+        return view('auth.verify');
     }
 
     public function verify(Request $request)
