@@ -11,8 +11,16 @@ class EmailVerificationController extends Controller
 {
     public function show()
     {
-        return view('auth.verify');
-    }
+        $verificationCode = null;
+        $email = session('email');
+
+        if (!empty($email)) {
+            $verificationCode = User::where('email', $email)->value('email_verification_code');
+        }
+
+        return view('auth.verify', [
+            'verificationCode' => $verificationCode,
+        ]);    }
 
     public function verify(Request $request)
     {
