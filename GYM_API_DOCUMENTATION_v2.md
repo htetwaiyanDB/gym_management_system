@@ -73,9 +73,56 @@ Authorization: Bearer {token}
 
 ---
 
-### 2) Register (Admin creates users)
+### 2) Register (Public)
 
-**POST** `/register`  ✅ Protected (admin)
+**POST** `/register`  ✅  Public
+**Body**
+```json
+{
+  "name": "Member One",
+  "email": "member1@example.com",
+  "phone": "555-111-2222",
+  "password": "Password123!",
+  "password_confirmation": "Password123!",
+  "role": "user"
+}
+```
+
+**Success (201)**
+```json
+{
+  "message": "Verification code sent to your email.",
+  "email": "member1@example.com"
+}
+```
+
+---
+
+### 3) Verify Email (Public)
+
+**POST** `/register/verify-email` ✅ Public
+
+**Body**
+```json
+{
+  "email": "member1@example.com",
+  "code": "123456"
+}
+```
+
+**Success (200)**
+```json
+{
+  "message": "Email verified successfully."
+}
+```
+
+---
+
+### 4) Register (Admin creates users)
+
+**POST** `/admin/register`  ✅ Protected (admin)
+
 
 **Notes**
 - Creating role `administrator` is blocked and returns **403**.
@@ -107,7 +154,7 @@ Authorization: Bearer {token}
 
 ---
 
-### 3) Logout
+### 5) Logout
 
 **POST** `/logout` ✅ Protected
 
@@ -122,7 +169,7 @@ Authorization: Bearer {token}
 
 ## Users (Admin)
 
-### 4) List Users
+### 6) List Users
 
 **GET** `/users` ✅ Protected (admin)
 
@@ -149,7 +196,7 @@ GET /api/users?deleted=true
 
 ---
 
-### 5) Delete User (Soft delete)
+### 7) Delete User (Soft delete)
 
 **DELETE** `/users/{id}` ✅ Protected (admin)
 
@@ -164,7 +211,7 @@ GET /api/users?deleted=true
 
 ---
 
-### 6) Restore User
+### 8) Restore User
 
 **POST** `/users/{id}/restore` ✅ Protected (admin)
 
@@ -185,7 +232,7 @@ GET /api/users?deleted=true
 
 ---
 
-### 7) Send Password Reset Link (Admin)
+### 9) Send Password Reset Link (Admin)
 
 **POST** `/users/forgot-password` ✅ Protected (admin)
 
@@ -210,13 +257,13 @@ GET /api/users?deleted=true
 
 ## Profile
 
-### 8) Current User
+### 10) Current User
 
 **GET** `/user` ✅ Protected
 
 ---
 
-### 9) Update Profile
+### 11) Update Profile
 
 **PUT** `/user/profile` ✅ Protected  
 **PATCH** `/user/profile` ✅ Protected
@@ -260,7 +307,7 @@ If no changes:
 
 > These endpoints are implemented in `Api\MessageController` and are designed for **admin chatting with users**.
 
-### 10) List Conversations (Admin)
+### 12) List Conversations (Admin)
 
 **GET** `/messages` ✅ Protected
 
@@ -282,7 +329,7 @@ If no changes:
 
 ---
 
-### 11) Get Message Thread With User (Admin)
+### 13) Get Message Thread With User (Admin)
 
 **GET** `/messages/{user}` ✅ Protected
 
@@ -307,7 +354,7 @@ If no changes:
 
 ---
 
-### 12) Send Message To User (Admin)
+### 14) Send Message To User (Admin)
 
 **POST** `/messages/{user}` ✅ Protected
 
@@ -325,7 +372,7 @@ If no changes:
 
 ## Attendance (QR / Scan)
 
-### 13) Attendance Users (for scanning UI)
+### 15) Attendance Users (for scanning UI)
 
 **GET** `/attendance/users` ✅ Protected
 
@@ -341,7 +388,7 @@ If no changes:
 
 ---
 
-### 14) Get QR Links (User + Trainer)
+### 16) Get QR Links (User + Trainer)
 
 **GET** `/attendance/qr` ✅ Protected
 
@@ -355,7 +402,7 @@ If no changes:
 
 ---
 
-### 15) Refresh QR (New tokens)
+### 17) Refresh QR (New tokens)
 
 **POST** `/attendance/qr/refresh` ✅ Protected
 
@@ -369,7 +416,7 @@ If no changes:
 
 ---
 
-### 16) Scan Attendance (Admin selects user + type)
+### 18) Scan Attendance (Admin selects user + type)
 
 **POST** `/attendance/scan` ✅ Protected
 
@@ -401,7 +448,7 @@ If no changes:
 
 ---
 
-### 17) Scan Attendance From QR (User scans their own QR)
+### 19) Scan Attendance From QR (User scans their own QR)
 
 **POST** `/attendance/scan/qr` ✅ Protected
 
@@ -434,7 +481,7 @@ POST /api/attendance/scan/qr?type=user&token=XXXX
 
 ---
 
-### 18) Attendance Records
+### 20) Attendance Records
 
 **GET** `/attendance/records` ✅ Protected
 
@@ -465,7 +512,7 @@ GET /api/attendance/records?username=John&start_date=2026-01-01&end_date=2026-01
 
 ---
 
-### 19) Checked-In Summary (Today)
+### 21) Checked-In Summary (Today)
 
 **GET** `/attendance/checked-in` ✅ Protected
 
@@ -484,7 +531,7 @@ GET /api/attendance/records?username=John&start_date=2026-01-01&end_date=2026-01
 
 ## Dashboard
 
-### 20) Attendance Report (Chart data)
+### 22) Attendance Report (Chart data)
 
 **GET** `/dashboard/attendance-report` ✅ Protected
 
@@ -510,7 +557,7 @@ GET /api/dashboard/attendance-report?period=1month
 
 ## Dashboard Export
 
-### 21) Export Dashboard Report
+### 23) Export Dashboard Report
 
 **GET** `/dashboard/export/{format}` ✅ Protected
 
@@ -531,7 +578,7 @@ GET /api/dashboard/export/json
 
 ## Blogs
 
-### 22) List Published Blog Posts
+### 24) List Published Blog Posts
 
 **GET** `/blogs`
 
@@ -555,7 +602,7 @@ GET /api/dashboard/export/json
 
 ---
 
-### 23) Blog Details By Slug
+### 25) Blog Details By Slug
 
 **GET** `/blogs/{slug}`
 
@@ -584,7 +631,7 @@ GET /api/blogs/how-to-build-muscle
 
 ## Subscriptions
 
-### 24) List Subscriptions
+### 26) List Subscriptions
 
 **GET** `/subscriptions` ✅ Protected
 
@@ -612,7 +659,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 25) Subscription Options (Members + Plans)
+### 27) Subscription Options (Members + Plans)
 
 **GET** `/subscriptions/options` ✅ Protected
 
@@ -630,7 +677,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 26) Create Subscription
+### 28) Create Subscription
 
 **POST** `/subscriptions` ✅ Protected
 
@@ -655,7 +702,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 27) Hold Subscription
+### 29) Hold Subscription
 
 **POST** `/subscriptions/{subscription}/hold` ✅ Protected
 
@@ -670,7 +717,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 28) Resume Subscription
+### 30) Resume Subscription
 
 **POST** `/subscriptions/{subscription}/resume` ✅ Protected
 
@@ -686,7 +733,7 @@ GET /api/blogs/how-to-build-muscle
 
 ## Pricing
 
-### 29) Update Monthly Subscription Price
+### 31) Update Monthly Subscription Price
 
 **PUT** `/pricing/monthly` ✅ Protected
 
@@ -705,7 +752,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 30) Update Quarterly Subscription Price
+### 32) Update Quarterly Subscription Price
 
 **PUT** `/pricing/quarterly` ✅ Protected
 
@@ -716,7 +763,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 31) Update Annual Subscription Price
+### 33) Update Annual Subscription Price
 
 **PUT** `/pricing/annual` ✅ Protected
 
@@ -727,7 +774,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 32) Update Trainer Price (per session)
+### 34) Update Trainer Price (per session)
 
 **PUT** `/pricing/trainers/{user}` ✅ Protected
 
@@ -752,7 +799,7 @@ GET /api/blogs/how-to-build-muscle
 
 ## Trainer Bookings
 
-### 33) List Bookings
+### 35) List Bookings
 
 **GET** `/trainer-bookings` ✅ Protected
 
@@ -781,7 +828,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 34) Create Booking
+### 36) Create Booking
 
 **POST** `/trainer-bookings` ✅ Protected
 
@@ -813,7 +860,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 35) Mark Booking As Paid
+### 37) Mark Booking As Paid
 
 **PATCH** `/trainer-bookings/{booking}/mark-paid` ✅ Protected
 
@@ -826,31 +873,31 @@ GET /api/blogs/how-to-build-muscle
 
 ## Trainer Module
 
-### 36) Trainer Home
+### 38) Trainer Home
 
 **GET** `/trainer/home` ✅ Protected (trainer)
 
 ---
 
-### 37) Trainer Check-in
+### 39) Trainer Check-in
 
 **GET** `/trainer/check-in` ✅ Protected (trainer)
 
 ---
 
-### 38) Trainer Scan From QR
+### 40) Trainer Scan From QR
 
 **POST** `/trainer/check-in/scan` ✅ Protected (trainer)
 
 ---
 
-### 39) Trainer Subscriptions
+### 41) Trainer Subscriptions
 
 **GET** `/trainer/subscriptions` ✅ Protected (trainer)
 
 ---
 
-### 40) Trainer Messages (Trainer ↔ Admin)
+### 42) Trainer Messages (Trainer ↔ Admin)
 
 **GET** `/trainer/messages` ✅ Protected (trainer)
 
@@ -872,7 +919,7 @@ GET /api/blogs/how-to-build-muscle
 
 ---
 
-### 41) Trainer Send Message to Admin
+### 43) Trainer Send Message to Admin
 
 **POST** `/trainer/messages` ✅ Protected (trainer)
 
@@ -890,7 +937,7 @@ GET /api/blogs/how-to-build-muscle
 
 ## Captcha
 
-### 42) Captcha API
+### 44) Captcha API
 
 **GET** `/captcha/api/{config?}`
 
@@ -899,7 +946,7 @@ Example:
 GET /captcha/api/default
 ```
 
-### 43) Captcha Image (API)
+### 45) Captcha Image (API)
 
 **GET** `/captcha`
 
@@ -912,7 +959,7 @@ GET /captcha/api/default
 
 ---
 
-### 44) Captcha Refresh (API)
+### 46) Captcha Refresh (API)
 
 **GET** `/captcha/refresh`
 
@@ -954,7 +1001,9 @@ GET /captcha/api/default
 | --- | --- | --- |
 | POST | `/login` | Public |
 | POST | `/logout` | Auth |
-| POST | `/register` | Admin |
+| POST | `/register` | Public |
+| POST | `/register/verify-email` | Public |
+| POST | `/admin/register` | Admin |
 | GET | `/version` | Public |
 | GET | `/blogs` | Public |
 | GET | `/blogs/{slug}` | Public |

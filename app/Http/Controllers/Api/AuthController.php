@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\RegisterRequest;
+use App\Http\Requests\Api\PublicRegisterRequest;
+use App\Http\Requests\Api\VerifyEmailRequest;
 use App\Http\Requests\Api\ForgotPasswordRequest;
 use App\Http\Requests\Api\UpdateProfileRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use App\Mail\EmailVerificationCodeMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
@@ -75,6 +79,68 @@ class AuthController extends Controller
             ]
         ], 201);
     }
+
+    /**
+     * Public Register Endpoint
+     * Creates a new user account and sends verification code
+     */
+    public function publicRegister(PublicRegisterRequest $request)
+    {
+        $verificationCode = (string) random_int(100000, 999999);
+
+        $user = User::create([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'phone' => $request->validated('phone'),
+            'password' => $request->validated('password'),
+            'role' => $request->validated('role'),
+            'email_verification_code' => $verificationCode,
+            'email_verification_expires_at' => now()->addMinutes(10),
+        ]);
+
+        Mail::to($user->email)->send(new EmailVerificationCodeMail($verificationCode));
+
+        return response()->json([
+            'message' => 'Verification code sent to your email.',
+            'email' => $user->email,
+        ], 201);
+    }
+
+    /**
+     * Verify Email Endpoint
+     * Confirms the email verification code for a user
+     */
+    public function verifyEmail(VerifyEmailRequest $request)
+    {
+        $user = User::where('email', $request->validated('email'))->firstOrFail();
+
+        if ($user->email_verified_at) {
+            return response()->json([
+                'message' => 'Email already verified.',
+            ]);
+        }
+
+        if (
+            $user->email_verification_code !== $request->validated('code') ||
+            ! $user->email_verification_expires_at ||
+            now()->gt($user->email_verification_expires_at)
+        ) {
+            return response()->json([
+                'message' => 'Invalid or expired verification code.',
+            ], 422);
+        }
+
+        $user->update([
+            'email_verified_at' => now(),
+            'email_verification_code' => null,
+            'email_verification_expires_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Email verified successfully.',
+        ]);
+    }
+
 
     /**
      * Login Endpoint

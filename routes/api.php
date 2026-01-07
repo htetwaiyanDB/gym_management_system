@@ -20,6 +20,8 @@ use Mews\Captcha\Facades\Captcha;
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'publicRegister']);
+Route::post('/register/verify-email', [AuthController::class, 'verifyEmail']);
 
 // Public blog endpoints
 Route::get('/blogs', [BlogController::class, 'index']);
@@ -86,7 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Registration endpoint - ONLY accessible by administrator
     // Root user can create other users (admission, nurse, doctor)
-    Route::post('/register', [AuthController::class, 'register'])
+    Route::post('/admin/register', [AuthController::class, 'register'])
         ->middleware('administrator');
 
     Route::middleware('trainer')->prefix('trainer')->group(function () {

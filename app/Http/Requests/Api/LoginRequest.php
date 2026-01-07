@@ -119,6 +119,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ($user && $user->role !== 'administrator' && ! $user->email_verified_at) {
+            RateLimiter::hit($this->throttleKey(), 60);
+
+            throw ValidationException::withMessages([
+                'email' => ['Please verify your email before logging in.'],
+            ]);
+        }
+
         // Clear rate limiter on successful login
         RateLimiter::clear($this->throttleKey());
 
