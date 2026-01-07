@@ -13,7 +13,13 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Unity GYM'),
+    'version' => env('APP_VERSION', '1.0.0'),
+    'display_name' => trim(sprintf(
+        '%s v%s',
+        env('APP_NAME', 'Unity GYM'),
+        env('APP_VERSION', '1.0.0')
+    )),
 
     /*
     |--------------------------------------------------------------------------
