@@ -239,6 +239,7 @@ Route::middleware(['auth', 'administrator'])->prefix('admin')->name('admin.')->g
     Route::get('/users/deleted', [UserController::class, 'deleted'])->name('users.deleted');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.force-destroy');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 

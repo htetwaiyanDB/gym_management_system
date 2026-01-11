@@ -206,10 +206,13 @@
             usersTable.innerHTML = users.map((user) => {
                 const status = user.deleted_at ? 'Deleted' : 'Active';
                 const actions = user.deleted_at
-                    ? `<button data-id="${user.id}" class="restore-user inline-flex items-center px-3 py-1 bg-emerald-600 text-white rounded-md text-xs">Restore</button>`
+                    ? `<div class="flex gap-2">
+                        <button data-id="${user.id}" class="restore-user inline-flex items-center px-3 py-1 bg-emerald-600 text-white rounded-md text-xs">Restore</button>
+                        <button data-id="${user.id}" class="force-delete-user inline-flex items-center px-3 py-1 bg-rose-700 text-white rounded-md text-xs">Delete</button>
+                    </div>`
                     : `<div class="flex gap-2">
                         <button data-id="${user.id}" data-phone="${user.phone || ''}" class="edit-user inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-xs">Edit</button>
-                        <button data-id="${user.id}" class="delete-user inline-flex items-center px-3 py-1 bg-rose-600 text-white rounded-md text-xs">Delete</button>
+                        <button data-id="${user.id}" class="soft-delete-user inline-flex items-center px-3 py-1 bg-rose-600 text-white rounded-md text-xs">Soft Delete</button>
                     </div>`;
 
                 return `
@@ -225,14 +228,24 @@
                 `;
             }).join('');
 
-            usersTable.querySelectorAll('.delete-user').forEach((button) => {
+            usersTable.querySelectorAll('.soft-delete-user').forEach((button) => {
                 button.addEventListener('click', async () => {
                     const userId = button.dataset.id;
-                    if (!confirm('Delete this user?')) return;
+                    if (!confirm('Soft delete this user?')) return;
                     await apiFetch(`/admin/users/${userId}`, { method: 'DELETE' });
-                    setMessage('User deleted successfully.', 'success');
-                    loadUsers(false);
+                    setMessage('User soft deleted successfully.', 'success');
+                    loadUsers();
                 });
+            });
+
+            usersTable.querySelectorAll('.force-delete-user').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const userId = button.dataset.id;
+                    if (!confirm('Permanently delete this user? This action cannot be undone.')) return;
+                    await apiFetch(`/admin/users/${userId}/force`, { method: 'DELETE' });
+                    setMessage('User permanently deleted successfully.', 'success');
+                    loadUsers();
+                 });
             });
 
             usersTable.querySelectorAll('.restore-user').forEach((button) => {
@@ -240,7 +253,7 @@
                     const userId = button.dataset.id;
                     await apiFetch(`/admin/users/${userId}/restore`, { method: 'POST' });
                     setMessage('User restored successfully.', 'success');
-                    loadUsers(true);
+                    loadUsers();
                 });
             });
 
@@ -258,9 +271,8 @@
             });
         };
 
-        const loadUsers = async (deleted = false) => {
-            const url = deleted ? '/admin/users/deleted' : '/admin/users';
-            const data = await apiFetch(url, { method: 'GET' });
+            const loadUsers = async () => {
+            const data = await apiFetch('/admin/users', { method: 'GET' });
             renderUsers(data.users || []);
             setMessage(data.message || 'Users loaded.', 'success');
         };
@@ -287,7 +299,7 @@
             setMessage('User created successfully.', 'success');
             event.target.reset();
             closePanel(createPanel);
-            loadUsers(false);
+            loadUsers();
         });
 
         document.getElementById('update-user-form').addEventListener('submit', async (event) => {
@@ -324,9 +336,9 @@
             setMessage('User updated successfully.', 'success');
             closePanel(editPanel);
             updatePassword.value = '';
-            loadUsers(false);
+            loadUsers();
         });
 
-        loadUsers(false);
+        loadUsers();
     </script>
 </x-app-layout>

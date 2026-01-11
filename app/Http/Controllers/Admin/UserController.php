@@ -12,7 +12,8 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::select('id', 'name', 'email', 'phone', 'role', 'email_verified_at', 'notifications_enabled', 'created_at', 'updated_at')
+            $users = User::withTrashed()
+            ->select('id', 'name', 'email', 'phone', 'role', 'email_verified_at', 'notifications_enabled', 'created_at', 'updated_at', 'deleted_at')
             ->orderByDesc('created_at')
             ->get();
 
@@ -89,31 +90,50 @@ class UserController extends Controller
     }
 
     public function destroy($id)
-{
-    $user = User::findOrFail($id);
 
-    if ($user->role === 'administrator') {
-        return response()->json(['message' => 'Administrator account cannot be deleted.'], 403);
-    }
+   {
+        $user = User::findOrFail($id);
+
+        if ($user->role === 'administrator') {
+            return response()->json(['message' => 'Administrator account cannot be deleted.'], 403);
+        }
 
     $user->delete(); // soft delete
-    return response()->json(['message' => 'User deleted successfully']);
-}
-
-public function restore($id)
-{
-    $user = User::withTrashed()->findOrFail($id);
-
-    if ($user->role === 'administrator') {
-        return response()->json(['message' => 'Administrator account cannot be restored here.'], 403);
+        return response()->json(['message' => 'User soft deleted successfully']);
     }
+
+    public function forceDestroy($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        if ($user->role === 'administrator') {
+            return response()->json(['message' => 'Administrator account cannot be deleted.'], 403);
+        }
+
 
     if (!$user->trashed()) {
-        return response()->json(['message' => 'User is not deleted.'], 400);
+            return response()->json(['message' => 'User must be soft deleted before permanent deletion.'], 400);
+        }
+
+        $user->forceDelete();
+
+     return response()->json(['message' => 'User permanently deleted successfully']);
     }
 
-    $user->restore();
-    return response()->json(['message' => 'User restored successfully']);
-}
+    public function restore($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        if ($user->role === 'administrator') {
+            return response()->json(['message' => 'Administrator account cannot be restored here.'], 403);
+        }
+
+        if (!$user->trashed()) {
+            return response()->json(['message' => 'User is not deleted.'], 400);
+        }
+
+        $user->restore();
+        return response()->json(['message' => 'User restored successfully']);
+    }
 
 }

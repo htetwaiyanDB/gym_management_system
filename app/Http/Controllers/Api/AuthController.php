@@ -475,6 +475,71 @@ class AuthController extends Controller
     }
 
     /**
+     * Permanently Delete User Endpoint
+     * Permanently deletes a soft-deleted user from the system
+     * ONLY accessible by administrator
+     */
+    public function forceDestroy(Request $request, $id)
+    {
+        if (!is_numeric($id) || (int)$id != $id) {
+            return response()->json([
+                'message' => 'Invalid user ID provided.'
+            ], 400);
+        }
+
+        $user = User::withTrashed()->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'The specified user does not exist.'
+            ], 404);
+        }
+
+        if ($user->role === 'administrator') {
+            Log::warning('Attempt to permanently delete administrator blocked', [
+                'attempted_by' => $request->user()->id,
+                'target_user_id' => $user->id,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'message' => 'Cannot delete root user. Root user cannot be removed from the system.'
+            ], 403);
+        }
+
+        if (!$user->trashed()) {
+            return response()->json([
+                'message' => 'User must be soft deleted before permanent deletion.'
+            ], 400);
+        }
+
+        $deletedUserInfo = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'deleted_at' => $user->deleted_at,
+        ];
+
+        $user->forceDelete();
+
+        Log::info('User permanently deleted by administrator', [
+            'deleted_user_id' => $deletedUserInfo['id'],
+            'deleted_email' => $deletedUserInfo['email'],
+            'deleted_role' => $deletedUserInfo['role'],
+            'deleted_by' => $request->user()->id,
+            'deleted_by_email' => $request->user()->email,
+            'ip' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'message' => 'User permanently deleted successfully.',
+            'deleted_user' => $deletedUserInfo,
+        ], 200);
+    }
+
+
+    /**
      * Update User Endpoint
      * Updates a user in the system
      * ONLY accessible by administrator
@@ -617,9 +682,7 @@ class AuthController extends Controller
 
         // Prevent restoring root user (should not be deleted in first place)
         if ($user->role === 'administrator') {
-            Log::warning('Attempt to restore administrator
-
-            strator', [
+            Log::warning('Attempt to restore administrator blocked', [
                 'attempted_by' => $request->user()->id,
                 'target_user_id' => $user->id,
                 'ip' => $request->ip(),

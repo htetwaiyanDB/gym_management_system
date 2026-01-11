@@ -127,6 +127,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Restore a soft-deleted user
         Route::post('/users/{id}/restore', [AuthController::class, 'restore']);
 
+        // Permanently delete a user (force delete)
+        Route::delete('/users/{id}/force', [AuthController::class, 'forceDestroy']);
+
         // Trainer pricing endpoints
         Route::put('/pricing/monthly', [PricingController::class, 'updateMonthly']);
         Route::put('/pricing/quarterly', [PricingController::class, 'updateQuarterly']);
