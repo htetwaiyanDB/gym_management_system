@@ -11,6 +11,41 @@ use Illuminate\Http\Request;
 
 class PricingController extends Controller
 {
+    public function index(): JsonResponse
+{
+    $pricingSetting = PricingSetting::firstOrCreate(
+        [],
+        [
+            'monthly_subscription_price' => 100000,
+            'quarterly_subscription_price' => 240000,
+            'annual_subscription_price' => 960000,
+        ]
+    );
+
+    $trainers = User::where('role', 'trainer')
+        ->select('id', 'name')
+        ->orderBy('name')
+        ->get()
+        ->map(function ($t) {
+            $tp = TrainerPricing::where('trainer_id', $t->id)->first();
+            return [
+                'id' => $t->id,
+                'name' => $t->name,
+                'price_per_session' => $tp?->price_per_session,
+            ];
+        });
+
+    return response()->json([
+        'subscription_prices' => [
+            'monthly' => $pricingSetting->monthly_subscription_price,
+            'quarterly' => $pricingSetting->quarterly_subscription_price,
+            'annual' => $pricingSetting->annual_subscription_price,
+        ],
+        'trainers' => $trainers,
+    ]);
+}
+
+
     public function updateTrainer(Request $request, User $user): JsonResponse
     {
         if ($user->role !== 'trainer') {

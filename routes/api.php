@@ -131,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{id}/force', [AuthController::class, 'forceDestroy']);
 
         // Trainer pricing endpoints
+        Route::get('/pricing', [PricingController::class, 'index']);
         Route::put('/pricing/monthly', [PricingController::class, 'updateMonthly']);
         Route::put('/pricing/quarterly', [PricingController::class, 'updateQuarterly']);
         Route::put('/pricing/annual', [PricingController::class, 'updateAnnual']);

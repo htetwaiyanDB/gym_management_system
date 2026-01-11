@@ -208,7 +208,7 @@
                 const actions = user.deleted_at
                     ? `<div class="flex gap-2">
                         <button data-id="${user.id}" class="restore-user inline-flex items-center px-3 py-1 bg-emerald-600 text-white rounded-md text-xs">Restore</button>
-                        <button data-id="${user.id}" class="force-delete-user inline-flex items-center px-3 py-1 bg-rose-700 text-white rounded-md text-xs">Delete</button>
+                        <button data-id="${user.id}" class="force-delete-user inline-flex items-center px-3 py-1 bg-black text-dark rounded-md text-xs">Delete</button>
                     </div>`
                     : `<div class="flex gap-2">
                         <button data-id="${user.id}" data-phone="${user.phone || ''}" class="edit-user inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-xs">Edit</button>
