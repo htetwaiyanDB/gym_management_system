@@ -130,6 +130,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Permanently delete a user (force delete)
         Route::delete('/users/{id}/force', [AuthController::class, 'forceDestroy']);
 
+        // Blog management endpoints
+        Route::put('/blogs/{blog}', [BlogController::class, 'update']);
+        Route::patch('/blogs/{blog}', [BlogController::class, 'update']);
+        Route::delete('/blogs/{blog}', [BlogController::class, 'destroy']);
+
         // Trainer pricing endpoints
         Route::get('/pricing', [PricingController::class, 'index']);
         Route::put('/pricing/monthly', [PricingController::class, 'updateMonthly']);
