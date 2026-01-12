@@ -137,8 +137,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/pricing/annual', [PricingController::class, 'updateAnnual']);
         Route::put('/pricing/trainers/{user}', [PricingController::class, 'updateTrainer']);
 
-         // Trainer booking endpoints
+        // Trainer booking endpoints
         Route::get('/trainer-bookings', [TrainerBookingController::class, 'index']);
+        Route::get('/trainer-bookings/options', [TrainerBookingController::class, 'options']);
         Route::post('/trainer-bookings', [TrainerBookingController::class, 'store']);
         Route::patch('/trainer-bookings/{booking}/mark-paid', [TrainerBookingController::class, 'markPaid']);
 

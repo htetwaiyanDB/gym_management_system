@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\TrainerBooking;
 use App\Models\TrainerPricing;
+use App\Models\User;
 use App\Notifications\NewMessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -42,6 +43,35 @@ class TrainerBookingController extends Controller
             'bookings' => $bookings,
         ]);
     }
+
+
+        public function options()
+    {
+        $members = User::query()
+            ->where('role', 'user')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone']);
+
+        $trainers = User::query()
+            ->where('role', 'trainer')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone']);
+
+        $trainerPrices = TrainerPricing::query()
+            ->whereIn('trainer_id', $trainers->pluck('id'))
+            ->get()
+            ->mapWithKeys(fn (TrainerPricing $pricing) => [
+                $pricing->trainer_id => (float) $pricing->price_per_session,
+            ]);
+
+        return response()->json([
+            'members' => $members,
+            'trainers' => $trainers,
+            'trainer_prices' => $trainerPrices,
+            'default_price_per_session' => self::DEFAULT_PRICE_PER_SESSION,
+        ]);
+    }
+
 
     public function store(Request $request)
     {
