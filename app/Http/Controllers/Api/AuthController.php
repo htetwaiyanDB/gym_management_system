@@ -322,7 +322,7 @@ class AuthController extends Controller
         }
 
         // Get all active users (default), excluding sensitive fields
-        $users = User::select('id', 'name', 'email', 'role', 'email_verified_at', 'created_at', 'updated_at')
+        $users = User::select('id', 'name','phone','email', 'role', 'email_verified_at', 'created_at', 'updated_at')
             ->orderBy('created_at', 'desc')
             ->get();
 
