@@ -9,6 +9,9 @@ return [
     // ✅ EXACT frontend origin (port matters)
     'allowed_origins' => [
         'http://8.222.195.9:5173',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+
     ],
 
     'allowed_origins_patterns' => [],

@@ -41,6 +41,30 @@ class BlogController extends Controller
         ]);
     }
 
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $this->validatePost($request);
+        $validated['slug'] = $this->generateUniqueSlug($validated['title']);
+
+        if ($request->hasFile('cover_image')) {
+            $validated['cover_image_path'] = $this->storeCoverImage($request->file('cover_image'));
+        }
+
+        $validated = $this->syncPublishDates($validated);
+
+        $post = BlogPost::create($validated);
+
+        if ($post->is_published && $post->published_at && $post->published_at->lessThanOrEqualTo(now())) {
+            $this->notifyAudience($post);
+        }
+
+        return response()->json([
+            'message' => 'Blog post created successfully.',
+            'data' => $this->formatPost($post),
+        ], 201);
+    }
+
+
     public function update(Request $request, BlogPost $blog): JsonResponse
     {
 

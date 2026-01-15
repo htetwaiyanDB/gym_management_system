@@ -131,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{id}/force', [AuthController::class, 'forceDestroy']);
 
         // Blog management endpoints
+        Route::post('/blogs', [BlogController::class, 'store']);
         Route::put('/blogs/{blog}', [BlogController::class, 'update']);
         Route::patch('/blogs/{blog}', [BlogController::class, 'update']);
         Route::delete('/blogs/{blog}', [BlogController::class, 'destroy']);

@@ -37,7 +37,7 @@ class TrainerBookingController extends Controller
                     'total_price' => $booking->total_price,
                     'status' => $booking->status,
                     'paid_status' => $booking->paid_status,
-                    'paid_at' => optional($booking->paid_at)-toIso8601String(),
+                    'paid_at' => optional($booking->paid_at)->toIso8601String(),
                     'notes' => $booking->notes,
                 ];
             });
