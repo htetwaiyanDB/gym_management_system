@@ -33,7 +33,7 @@ class LoginRequest extends FormRequest
         return [
             'identifier' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
-            //'captcha'  => ['required', 'captcha', "digits:{$captchaLength}"],
+            'captcha'  => ['required', 'captcha', "digits:{$captchaLength}"],
         ];
     }
 
