@@ -8,7 +8,7 @@ return [
 
     'allowed_origins' => array_filter(array_map('trim', explode(',', env(
         'FRONTEND_URLS',
-        env('FRONTEND_URL', 'http://8.222.195.9:5173,http://localhost:5173')
+        env('FRONTEND_URL', 'http://8.222.195.9:5173')
     )))),
 
     'allowed_origins_patterns' => [],
@@ -20,5 +20,5 @@ return [
     'max_age' => 0,
 
     // If you use Sanctum cookies/session, keep true.
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];
