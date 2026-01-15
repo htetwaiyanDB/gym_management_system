@@ -16,7 +16,7 @@ use App\Models\TrainerBooking;
 use App\Models\User;
 use App\Models\AttendanceScan;
 use Carbon\Carbon;
-
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes (Blade Admin + SPA host)
@@ -111,29 +111,48 @@ Route::get('/dashboard/export/{format}', [DashboardReportController::class, 'exp
     ->middleware(['auth', 'administrator'])
     ->whereIn('format', ['excel', 'json'])
     ->name('dashboard.export');
+Route::get('/attendance-report', [\App\Http\Controllers\Api\DashboardController::class, 'attendanceReport'])
+    ->middleware(['auth:sanctum', 'administrator'])
+    ->name('dashboard.attendance-report');
+Route::get('/growth-summary', [\App\Http\Controllers\Api\DashboardController::class, 'growthSummary'])
+    ->middleware(['auth:sanctum', 'administrator'])
+    ->name('dashboard.growth-summary');
 
 Route::get('/attendance', [AttendanceController::class, 'index'])
-    ->middleware(['auth', 'administrator'])
+    ->middleware(['auth:sanctum', 'administrator'])
     ->name('attendance.index');
 Route::get('/attendance/records', [AttendanceController::class, 'records'])
-    ->middleware(['auth', 'administrator'])
+    ->middleware(['auth:sanctum', 'administrator'])
     ->name('attendance.records');
 Route::get('/attendance/checked-in', [AttendanceController::class, 'checkedIn'])
-    ->middleware(['auth', 'administrator'])
+    ->middleware(['auth:sanctum', 'administrator'])
     ->name('attendance.checked-in');
+    Route::get('/attendance/users', [\App\Http\Controllers\Api\AttendanceController::class, 'users'])
+    ->middleware(['auth:sanctum', 'administrator'])
+    ->name('attendance.users');
+Route::get('/attendance/qr', [\App\Http\Controllers\Api\AttendanceController::class, 'qr'])
+    ->middleware(['auth:sanctum', 'administrator'])
+    ->name('attendance.qr');
 Route::get('/attendance/scan', [AttendanceController::class, 'scanFromQr'])
-    ->middleware('auth')
+    ->middleware('auth:sanctum')
     ->name('attendance.scan-qr');
 Route::post('/attendance/scan', [AttendanceController::class, 'scan'])
-    ->middleware(['auth', 'administrator'])
+    ->middleware(['auth:sanctum', 'administrator'])
     ->name('attendance.scan');
 Route::post('/attendance/qr/refresh', [AttendanceController::class, 'refreshQr'])
-    ->middleware(['auth', 'administrator'])
+    ->middleware(['auth:sanctum', 'administrator'])
     ->name('attendance.qr.refresh');
 
 Route::view('/reports', 'pages.reports')->name('reports.index');
 
-Route::view('/users', 'pages.users')->middleware(['auth', 'administrator'])->name('users.index');
+Route::get('/users', function (Request $request) {
+    if ($request->expectsJson()) {
+        return app(\App\Http\Controllers\Api\AuthController::class)->index($request);
+    }
+
+    return view('pages.users');
+})->middleware(['auth:sanctum', 'administrator'])->name('users.index');
+
 
 Route::view('/subscriptions', 'pages.subscriptions')
     ->middleware(['auth', 'administrator'])

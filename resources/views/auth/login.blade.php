@@ -23,7 +23,7 @@
                 id="email"
                 class="block mt-1 w-full"
                 type="text"
-                name="email"
+                name="identifier"
                 :value="old('email')"
                 required
                 autofocus

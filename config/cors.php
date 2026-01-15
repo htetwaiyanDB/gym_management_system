@@ -1,24 +1,31 @@
 <?php
 
 return [
-
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    // Apply CORS only to API routes
+    'paths' => ['api/*'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_filter(array_map('trim', explode(',', env(
-        'FRONTEND_URLS',
-        env('FRONTEND_URL', 'http://8.222.195.9:5173')
-    )))),
+    // ✅ EXACT frontend origin (port matters)
+    'allowed_origins' => [
+        'http://8.222.195.9:5173',
+    ],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    // ✅ MUST allow Authorization for Bearer token
+    'allowed_headers' => [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+    ],
 
-    'exposed_headers' => ['Authorization'],
+    'exposed_headers' => [],
 
     'max_age' => 0,
 
-    // If you use Sanctum cookies/session, keep true.
-    'supports_credentials' => true,
+    // ❌ Bearer token → no cookies
+    'supports_credentials' => false,
 ];
