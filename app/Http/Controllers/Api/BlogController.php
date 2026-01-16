@@ -134,8 +134,17 @@ class BlogController extends Controller
 
     private function normalizePublishFields(array $validated): array
     {
-        if (array_key_exists('publish_immediately', $validated) && ! array_key_exists('is_published', $validated)) {
-            $validated['is_published'] = (bool) $validated['publish_immediately'];
+        if (array_key_exists('publish_immediately', $validated)) {
+            $publishImmediately = (bool) $validated['publish_immediately'];
+
+            if (! array_key_exists('is_published', $validated) || $publishImmediately) {
+                $validated['is_published'] = $publishImmediately;
+            }
+
+            if ($publishImmediately) {
+                $validated['published_at'] = now()->toIso8601String();
+                unset($validated['publish_date'], $validated['timezone_offset']);
+            }
         }
 
         if (array_key_exists('publish_date', $validated) && ! array_key_exists('published_at', $validated)) {
@@ -153,7 +162,7 @@ class BlogController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'summary' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string'],
-            'cover_image' => ['nullable', 'image', 'max:2048'],
+            'cover_image' => ['nullable', 'image', 'max:20480'],
             'is_published' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
             'publish_immediately' => ['nullable', 'boolean'],
