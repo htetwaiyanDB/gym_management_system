@@ -113,6 +113,8 @@ class BlogController extends Controller
 
     private function formatPost(BlogPost $post): array
     {
+        $publishImmediately = $post->is_published
+            && (! $post->published_at || $post->published_at->lessThanOrEqualTo(now()));
         return [
             'id' => $post->id,
             'title' => $post->title,
@@ -122,14 +124,15 @@ class BlogController extends Controller
             'cover_image_url' => $post->cover_image_path
                 ? Storage::disk('public')->url($post->cover_image_path)
                 : null,
+            'is_published' => $post->is_published,
             'published_at' => $post->published_at?->toIso8601String(),
-            'publish_immediately' => ['nullable', 'boolean'],
-            'publish_date' => ['nullable', 'date'],
+            'publish_immediately' => $publishImmediately,
+            'publish_date' => $post->published_at?->toIso8601String(),
             'updated_at' => $post->updated_at->toIso8601String(),
         ];
     }
 
-        private function normalizePublishFields(array $validated): array
+    private function normalizePublishFields(array $validated): array
     {
         if (array_key_exists('publish_immediately', $validated) && ! array_key_exists('is_published', $validated)) {
             $validated['is_published'] = (bool) $validated['publish_immediately'];
@@ -153,6 +156,8 @@ class BlogController extends Controller
             'cover_image' => ['nullable', 'image', 'max:2048'],
             'is_published' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
+            'publish_immediately' => ['nullable', 'boolean'],
+            'publish_date' => ['nullable', 'date'],
             'timezone_offset' => ['nullable', 'integer'],
         ]);
     }
