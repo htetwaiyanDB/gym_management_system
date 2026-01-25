@@ -140,4 +140,30 @@ class TrainerBookingController extends Controller
             'message' => 'Booking marked as paid.',
         ]);
     }
+
+        public function markActive(TrainerBooking $booking)
+    {
+        if ($booking->status !== 'active') {
+            $booking->update([
+                'status' => 'active',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Booking marked as active.',
+        ]);
+    }
+
+    public function markHold(TrainerBooking $booking)
+    {
+        if ($booking->status !== 'hold') {
+            $booking->update([
+                'status' => 'hold',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Booking marked as hold.',
+        ]);
+    }
 }

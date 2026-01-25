@@ -160,6 +160,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'update']);
         Route::patch('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'update']);
         Route::delete('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'destroy']);
+        Route::patch('/trainer-bookings/{booking}/mark-active', [TrainerBookingController::class, 'markActive']);
+        Route::patch('/trainer-bookings/{booking}/mark-hold', [TrainerBookingController::class, 'markHold']);
 
         // Subscription management endpoints
         Route::prefix('subscriptions')->group(function () {
