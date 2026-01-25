@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\TrainerPackageController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\TrainerController;
+use App\Http\Controllers\Api\TrainerSessionController;
 use App\Http\Controllers\Api\UserMessageController;
 use App\Http\Controllers\Api\UserController;
 use Mews\Captcha\Facades\Captcha;
@@ -98,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/subscriptions', [TrainerController::class, 'subscriptions']);
         Route::get('/messages', [TrainerController::class, 'messages']);
         Route::post('/messages', [TrainerController::class, 'sendMessage']);
+        Route::post('/bookings/{booking}/confirm', [TrainerSessionController::class, 'confirm']);
     });
 
     Route::middleware('role:user')->prefix('user')->group(function () {
@@ -108,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/bookings', [UserController::class, 'bookings']);
         Route::get('/messages', [UserController::class, 'messages']);
         Route::post('/messages', [UserController::class, 'sendMessage']);
+        Route::post('/bookings/{booking}/confirm', [TrainerSessionController::class, 'confirm']);
     });
 
     // User management endpoints - ONLY accessible by administrator

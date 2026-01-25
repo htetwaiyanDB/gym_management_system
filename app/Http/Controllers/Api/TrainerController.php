@@ -114,6 +114,7 @@ class TrainerController extends Controller
                         ]
                         : null,
                     'sessions_count' => $booking->sessions_count,
+                    'sessions_remaining' => $booking->sessions_remaining,
                     'status' => $booking->status,
                     'paid_status' => $booking->paid_status,
                     'notes' => $booking->notes,

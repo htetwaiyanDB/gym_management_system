@@ -73,6 +73,7 @@ class TrainerBookingController extends Controller
             'trainer_package_id' => $package->id,
             'sessions_count' => $sessionsCount,
             'price_per_session' => $pricePerSession,
+            'sessions_remaining' => $sessionsCount,
             'total_price' => (float) $package->price,
             'status' => $validated['status'],
             'paid_status' => $validated['paid_status'],

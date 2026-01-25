@@ -171,6 +171,7 @@ class UserController extends Controller
                         ]
                         : null,
                     'sessions_count' => $booking->sessions_count,
+                    'sessions_remaining' => $booking->sessions_remaining,
                     'status' => $booking->status,
                 ];
             });

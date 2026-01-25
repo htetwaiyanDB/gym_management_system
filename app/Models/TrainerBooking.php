@@ -17,6 +17,7 @@ class TrainerBooking extends Model
         'trainer_id',
         'trainer_package_id',
         'sessions_count',
+        'sessions_remaining',
         'price_per_session',
         'total_price',
         'status',
@@ -44,6 +45,11 @@ class TrainerBooking extends Model
     public function trainerPackage(): BelongsTo
     {
         return $this->belongsTo(TrainerPackage::class);
+    }
+
+     public function sessionConfirmations()
+    {
+        return $this->hasMany(TrainerSessionConfirmation::class);
     }
 
     public function getMemberPhoneAttribute(): ?string
