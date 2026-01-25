@@ -101,7 +101,8 @@ class UserController extends Controller
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 240000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
             ]
         );
@@ -276,11 +277,15 @@ class UserController extends Controller
             return (float) $pricingSetting->annual_subscription_price;
         }
 
-        if ($durationDays >= 80) {
+        if ($durationDays >= 180) {
             return (float) $pricingSetting->quarterly_subscription_price;
         }
 
-        if ($durationDays >= 28) {
+         if ($durationDays >= 90) {
+            return (float) $pricingSetting->three_month_subscription_price;
+        }
+
+        if ($durationDays >= 30) {
             return (float) $pricingSetting->monthly_subscription_price;
         }
 

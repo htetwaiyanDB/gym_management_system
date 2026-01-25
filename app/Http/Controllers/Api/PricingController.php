@@ -12,38 +12,40 @@ use Illuminate\Http\Request;
 class PricingController extends Controller
 {
     public function index(): JsonResponse
-{
-    $pricingSetting = PricingSetting::firstOrCreate(
-        [],
-        [
-            'monthly_subscription_price' => 100000,
-            'quarterly_subscription_price' => 240000,
-            'annual_subscription_price' => 960000,
-        ]
-    );
+    {
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 100000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 960000,
+            ]
+        );
 
-    $trainers = User::where('role', 'trainer')
-        ->select('id', 'name')
-        ->orderBy('name')
-        ->get()
-        ->map(function ($t) {
-            $tp = TrainerPricing::where('trainer_id', $t->id)->first();
-            return [
-                'id' => $t->id,
-                'name' => $t->name,
-                'price_per_session' => $tp?->price_per_session,
-            ];
-        });
+        $trainers = User::where('role', 'trainer')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($t) {
+                $tp = TrainerPricing::where('trainer_id', $t->id)->first();
+                return [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'price_per_session' => $tp?->price_per_session,
+                ];
+            });
 
-    return response()->json([
-        'subscription_prices' => [
-            'monthly' => $pricingSetting->monthly_subscription_price,
-            'quarterly' => $pricingSetting->quarterly_subscription_price,
-            'annual' => $pricingSetting->annual_subscription_price,
-        ],
-        'trainers' => $trainers,
-    ]);
-}
+        return response()->json([
+            'subscription_prices' => [
+                'one_month' => $pricingSetting->monthly_subscription_price,
+                'three_months' => $pricingSetting->three_month_subscription_price,
+                'six_months' => $pricingSetting->quarterly_subscription_price,
+                'twelve_months' => $pricingSetting->annual_subscription_price,
+            ],
+            'trainers' => $trainers,
+        ]);
+    }
 
 
     public function updateTrainer(Request $request, User $user): JsonResponse
@@ -74,85 +76,125 @@ class PricingController extends Controller
     }
 
     /**
-     * Update Monthly Subscription Price
+     * Update One-Month Subscription Price
      */
-    public function updateMonthly(Request $request): JsonResponse
+    public function updateOneMonth(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'monthly_subscription_price' => ['required', 'numeric', 'min:0'],
+            'one_month_subscription_price' => ['required', 'numeric', 'min:0'],
         ]);
 
         $pricingSetting = PricingSetting::firstOrCreate(
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 400000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 500000,
                 'annual_subscription_price' => 800000,
             ]
         );
 
-        $pricingSetting->update($validated);
+         $pricingSetting->update([
+            'monthly_subscription_price' => $validated['one_month_subscription_price'],
+        ]);
 
         return response()->json([
-            'message' => 'Monthly subscription price updated.',
+            'message' => '1-Month subscription price updated.',
             'pricing' => [
-                'monthly_subscription_price' => $pricingSetting->monthly_subscription_price,
+                'one_month_subscription_price' => $pricingSetting->monthly_subscription_price,
             ],
         ]);
     }
 
     /**
-     * Update Quarterly Subscription Price
+     * Update 3_Month Subscription Price
      */
-    public function updateQuarterly(Request $request): JsonResponse
+    public function updateThreeMonths(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'quarterly_subscription_price' => ['required', 'numeric', 'min:0'],
+            'three_month_subscription_price' => ['required', 'numeric', 'min:0'],
         ]);
 
         $pricingSetting = PricingSetting::firstOrCreate(
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 240000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
             ]
         );
 
-        $pricingSetting->update($validated);
+         $pricingSetting->update([
+            'three_month_subscription_price' => $validated['three_month_subscription_price'],
+        ]);
 
         return response()->json([
-            'message' => 'Quarterly subscription price updated.',
+            'message' => '3-month subscription price updated.',
             'pricing' => [
-                'quarterly_subscription_price' => $pricingSetting->quarterly_subscription_price,
+                'three_month_subscription_price' => $pricingSetting->three_month_subscription_price,
             ],
         ]);
     }
 
     /**
-     * Update Annual Subscription Price
+     * Update 6-Momth Subscription Price
      */
-    public function updateAnnual(Request $request): JsonResponse
+    public function updateSixMonths(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'annual_subscription_price' => ['required', 'numeric', 'min:0'],
+            'six_month_subscription_price' => ['required', 'numeric', 'min:0'],
         ]);
 
         $pricingSetting = PricingSetting::firstOrCreate(
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 240000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
             ]
         );
 
-        $pricingSetting->update($validated);
+        $pricingSetting->update([
+            'quarterly_subscription_price' => $validated['six_month_subscription_price'],
+        ]);
 
         return response()->json([
-            'message' => 'Annual subscription price updated.',
+            'message' => '6-month subscription price updated.',
             'pricing' => [
-                'annual_subscription_price' => $pricingSetting->annual_subscription_price,
+                'six_month_subscription_price' => $pricingSetting->quarterly_subscription_price,
+            ],
+        ]);
+    }
+
+    /**
+     * Update 12-Month Subscription Price
+     */
+    public function updateTwelveMonths(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'twelve_month_subscription_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 80000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 960000,
+            ]
+        );
+
+        $pricingSetting->update([
+            'annual_subscription_price' => $validated['twelve_month_subscription_price'],
+        ]);
+
+        return response()->json([
+            'message' => '12-month subscription price updated.',
+            'pricing' => [
+                'twelve_month_subscription_price' => $pricingSetting->annual_subscription_price,
             ],
         ]);
     }

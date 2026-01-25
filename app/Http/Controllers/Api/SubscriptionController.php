@@ -17,8 +17,9 @@ class SubscriptionController extends Controller
 {
 
     private const ANNUAL_PLAN_MIN_DAYS = 360;
-    private const QUARTERLY_PLAN_MIN_DAYS = 80;
-    private const MONTHLY_PLAN_MIN_DAYS = 28;
+    private const SIX_MONTH_PLAN_MIN_DAYS = 180;
+    private const THREE_MONTH_PLAN_MIN_DAYS = 90;
+    private const MONTHLY_PLAN_MIN_DAYS = 30;
 
 
     public function index(Request $request)
@@ -34,7 +35,8 @@ class SubscriptionController extends Controller
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 240000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
             ]
         );
@@ -87,7 +89,8 @@ class SubscriptionController extends Controller
             [],
             [
                 'monthly_subscription_price' => 80000,
-                'quarterly_subscription_price' => 240000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
             ]
         );
@@ -199,9 +202,14 @@ class SubscriptionController extends Controller
             return (float) $pricingSetting->annual_subscription_price;
         }
 
-        if ($durationDays >= self::QUARTERLY_PLAN_MIN_DAYS) {
+        if ($durationDays >= self::SIX_MONTH_PLAN_MIN_DAYS) {
             return (float) $pricingSetting->quarterly_subscription_price;
         }
+
+        if ($durationDays >= self::THREE_MONTH_PLAN_MIN_DAYS) {
+            return (float) $pricingSetting->three_month_subscription_price;
+        }
+
 
         if ($durationDays >= self::MONTHLY_PLAN_MIN_DAYS) {
             return (float) $pricingSetting->monthly_subscription_price;
@@ -213,17 +221,22 @@ class SubscriptionController extends Controller
     {
         $definitions = [
             [
-                'name' => 'Monthly',
+                'name' => '1 Month',
                 'duration_days' => self::MONTHLY_PLAN_MIN_DAYS,
                 'price' => (float) $pricingSetting->monthly_subscription_price,
             ],
             [
-                'name' => 'Quarterly',
-                'duration_days' => self::QUARTERLY_PLAN_MIN_DAYS,
+                'name' => '3 Months',
+                'duration_days' => self::THREE_MONTH_PLAN_MIN_DAYS,
+                'price' => (float) $pricingSetting->three_month_subscription_price,
+            ],
+            [
+                'name' => '6 Months',
+                'duration_days' => self::SIX_MONTH_PLAN_MIN_DAYS,
                 'price' => (float) $pricingSetting->quarterly_subscription_price,
             ],
             [
-                'name' => 'Annual',
+                'name' => '12 Months',
                 'duration_days' => self::ANNUAL_PLAN_MIN_DAYS,
                 'price' => (float) $pricingSetting->annual_subscription_price,
             ],
