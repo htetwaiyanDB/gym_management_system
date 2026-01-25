@@ -150,6 +150,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/trainer-bookings', [TrainerBookingController::class, 'store']);
         Route::patch('/trainer-bookings/{booking}/mark-paid', [TrainerBookingController::class, 'markPaid']);
 
+         // Trainer package endpoints
+        Route::get('/trainer-packages', [TrainerPackageController::class, 'index']);
+        Route::get('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'show']);
+        Route::post('/trainer-packages', [TrainerPackageController::class, 'store']);
+        Route::put('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'update']);
+        Route::patch('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'update']);
+        Route::delete('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'destroy']);
+
         // Subscription management endpoints
         Route::prefix('subscriptions')->group(function () {
         Route::get('/', [SubscriptionController::class, 'index']);

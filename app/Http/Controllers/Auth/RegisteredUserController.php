@@ -35,17 +35,15 @@ class RegisteredUserController extends Controller
                 'required',
                 'confirmed',
                 Password::min(4)
-                    ->letters(),
+                    ->numbers(),
             ],
             'role' => ['required', 'in:trainer,user'],
             'captcha' => ['required', 'captcha', "digits:{$captchaLength}"],
         ], [
             'captcha.captcha' => 'Invalid captcha. Please try again.',
             'captcha.digits' => 'Captcha must be numbers only.',
-            'password.min' => 'The password must be at least 8 characters.',
-            'password.letters' => 'The password must contain at least one letter.',
-            'password.numbers' => 'The password must contain at least one number.',
-            'password.symbols' => 'The password must contain at least one symbol.',
+            'password.min' => 'The password must be at least 4 characters.',
+            'password.numbers' => 'The password must contain at least 4 number.',
         ]);
 
         // Generate 6-digit OTP

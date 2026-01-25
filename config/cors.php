@@ -11,6 +11,8 @@ return [
         'http://8.222.195.9:5173',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
+        'https://unityfitnessmyanmar.online',
+        'https://www.unityfitnessmyanmar.online',
 
     ],
 
