@@ -24,7 +24,7 @@ class TrainerSessionController extends Controller
             ], 403);
         }
 
-        if ($booking->sessions_remaining <= 0) {
+         if ($booking->sessions_remaining !== null && $booking->sessions_remaining <= 0) {
             return response()->json([
                 'message' => 'All sessions have already been completed for this booking.',
             ], 422);
@@ -41,6 +41,12 @@ class TrainerSessionController extends Controller
                 ->whereKey($booking->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if ($lockedBooking->sessions_remaining === null) {
+                $lockedBooking->sessions_remaining = $lockedBooking->sessions_count;
+                $lockedBooking->save();
+            }
+
 
             if ($lockedBooking->sessions_remaining <= 0) {
                 return [
