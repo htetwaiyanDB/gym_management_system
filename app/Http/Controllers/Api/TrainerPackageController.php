@@ -67,8 +67,8 @@ class TrainerPackageController extends Controller
         return $request->validate([
             'name' => [$requiredRule, 'string', 'max:255'],
             'package_type' => [$requiredRule, 'string', 'max:100'],
-            'sessions_count' => [$requiredRule, 'integer', 'min:1'],
-            'duration_months' => [$requiredRule, 'integer', 'min:1'],
+            'sessions_count' => [$requiredRule, 'nullable', 'integer', 'min:1', 'required_without:duration_months'],
+            'duration_months' => [$requiredRule, 'nullable', 'integer', 'min:1', 'required_without:sessions_count'],
             'price' => [$requiredRule, 'numeric', 'min:0'],
         ]);
     }
