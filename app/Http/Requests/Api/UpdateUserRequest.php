@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
@@ -26,6 +27,12 @@ class UpdateUserRequest extends FormRequest
         $userId = $this->route('id');
 
         return [
+            'user_id' => [
+                'sometimes',
+                'string',
+                'regex:/^\d{5}$/',
+                Rule::unique('users', 'user_id')->ignore($userId),
+            ],
             'name' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email' => [
                 'sometimes',
@@ -64,6 +71,8 @@ class UpdateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'user_id.regex' => 'The user id must be exactly 5 digits.',
+            'user_id.unique' => 'The user id has already been taken.',
             'name.regex' => 'The name field may only contain letters and spaces.',
             'email.unique' => 'The email has already been taken.',
             'phone.unique' => 'The phone number has already been taken.',
@@ -82,6 +91,12 @@ class UpdateUserRequest extends FormRequest
         if ($this->has('email')) {
             $this->merge([
                 'email' => strtolower(trim($this->email)),
+            ]);
+        }
+
+        if ($this->has('user_id')) {
+            $this->merge([
+                'user_id' => trim($this->user_id),
             ]);
         }
 

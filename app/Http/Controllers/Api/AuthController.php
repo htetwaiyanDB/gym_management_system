@@ -574,6 +574,11 @@ class AuthController extends Controller
             ], 403);
         }
 
+        if ($request->has('user_id')) {
+            $user->user_id = $request->validated('user_id');
+            $updatedFields[] = 'user_id';
+        }
+
         $updatedFields = [];
 
         if ($request->has('name')) {
@@ -627,6 +632,7 @@ class AuthController extends Controller
                 'message' => 'User updated successfully',
                 'user' => [
                     'id' => $user->id,
+                    'user_id' => $user->user_id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
@@ -642,6 +648,7 @@ class AuthController extends Controller
             'message' => 'No changes provided',
             'user' => [
                 'id' => $user->id,
+                'user_id' => $user->user_id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
