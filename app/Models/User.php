@@ -75,13 +75,13 @@ class User extends Authenticatable
             }
         });
 
-        static::created(function ($user) {
-            if (! $user->user_id) {
-                $user->forceFill([
-                    'user_id' => str_pad((string) $user->id, 5, '0', STR_PAD_LEFT),
-                ])->saveQuietly();
-            }
-        });
+        // static::created(function ($user) {
+        //     if (! $user->user_id) {
+        //         $user->forceFill([
+        //             'user_id' => str_pad((string) $user->id, 5, '0', STR_PAD_LEFT),
+        //         ])->saveQuietly();
+        //     }
+        // });
 
 
         static::updating(function ($user) {

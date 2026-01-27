@@ -40,7 +40,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'user_id' => ['nullable', 'string', 'regex:/^\d{5}$/', 'unique:users,user_id'],
+            'user_id' => ['required', 'string', 'regex:/^\d{5}$/', 'unique:users,user_id'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required_unless:role,administrator', 'nullable', 'string', 'max:20', 'unique:users,phone'],
@@ -54,6 +54,7 @@ class UserController extends Controller
             ],
             'role' => ['required', Rule::in(['administrator', 'trainer', 'user'])],
              ], [
+            'user_id.required' => 'The user id is required.',
             'user_id.regex' => 'The user id must be exactly 5 digits.',
             'password.min' => 'The password must be at least 8 characters.',
             'password.letters' => 'The password must contain at least one letter.',

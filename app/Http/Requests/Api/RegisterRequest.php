@@ -27,7 +27,7 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['nullable', 'string', 'regex:/^\d{5}$/', 'unique:users,user_id'],
+            'user_id' => ['required', 'string', 'regex:/^\d{5}$/', 'unique:users,user_id'],
             'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
@@ -52,6 +52,7 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'user_id.required' => 'The user id is required.',
             'name.regex' => 'The name field may only contain letters and spaces.',
             'password.confirmed' => 'The password confirmation does not match.',
             'password.min' => 'The password must be at least 4 characters.',
