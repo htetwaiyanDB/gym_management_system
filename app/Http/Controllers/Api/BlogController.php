@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Carbon\CarbonTimeZone;
 
 
 class BlogController extends Controller
@@ -205,10 +206,17 @@ class BlogController extends Controller
     {
         $timezone = config('app.timezone');
 
+        $hasTimezone = preg_match('/[zZ]|[+-]\d{2}:?\d{2}$/', $publishedAt) === 1;
+
+        if ($hasTimezone) {
+            return Carbon::parse($publishedAt)->setTimezone($timezone);
+        }
+
+
         if ($timezoneOffset !== null) {
-            return Carbon::createFromFormat('Y-m-d\TH:i', $publishedAt, 'UTC')
-                ->addMinutes($timezoneOffset)
-                ->setTimezone($timezone);
+            $clientTimezone = CarbonTimeZone::createFromMinuteOffset(-$timezoneOffset);
+
+            return Carbon::parse($publishedAt, $clientTimezone)->setTimezone($timezone);
         }
 
         return Carbon::parse($publishedAt, $timezone);
