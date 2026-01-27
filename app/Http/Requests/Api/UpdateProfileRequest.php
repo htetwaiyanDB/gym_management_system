@@ -43,14 +43,10 @@ class UpdateProfileRequest extends FormRequest
                 'unique:users,phone,' . $userId,
             ],
             'password' => [
-                'sometimes',
-                'string',
+                'required',
                 'confirmed',
-                Password::min(8)
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
-                    ->uncompromised(),
+                Password::min(4)
+                    ->numbers(),
             ],
             'password_confirmation' => ['required_with:password', 'string'],
             'notifications_enabled' => ['sometimes', 'boolean'],
@@ -69,7 +65,8 @@ class UpdateProfileRequest extends FormRequest
             'email.unique' => 'The email has already been taken.',
             'phone.unique' => 'The phone number has already been taken.',
             'password.confirmed' => 'The password confirmation does not match.',
-            'password.min' => 'The password must be at least 8 characters.',
+            'password.min' => 'The password must be at least 4 characters.',
+            'password.numbers' => 'The password must contain at least one number.',
             'password_confirmation.required_with' => 'The password confirmation is required when password is provided.',
         ];
     }
@@ -98,6 +95,12 @@ class UpdateProfileRequest extends FormRequest
             $this->merge([
                 'name' => trim($this->name),
             ]);
+        }
+
+
+        if ($this->has('password') && $this->input('password') === '') {
+            $this->request->remove('password');
+            $this->request->remove('password_confirmation');
         }
     }
 }
