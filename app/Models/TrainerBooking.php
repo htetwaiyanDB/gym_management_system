@@ -18,6 +18,13 @@ class TrainerBooking extends Model
         'trainer_package_id',
         'sessions_count',
         'sessions_remaining',
+        'sessions_start_date',
+        'sessions_end_date',
+        'month_start_date',
+        'month_end_date',
+        'hold_start_date',
+        'hold_end_date',
+        'total_hold_days',
         'price_per_session',
         'total_price',
         'status',
@@ -28,6 +35,13 @@ class TrainerBooking extends Model
 
     protected $casts = [
         'paid_at' => 'datetime',
+        'sessions_start_date' => 'datetime',
+        'sessions_end_date' => 'datetime',
+        'month_start_date' => 'datetime',
+        'month_end_date' => 'datetime',
+        'hold_start_date' => 'datetime',
+        'hold_end_date' => 'datetime',
+        'total_hold_days' => 'integer',
     ];
 
     // App\Models\TrainerBooking.php
@@ -61,5 +75,16 @@ class TrainerBooking extends Model
     {
         return $this->trainer?->phone;
     }
+
+    public function isMonthBased(): bool
+    {
+        return $this->trainerPackage?->package_type === 'monthly';
+    }
+
+    public function isSessionBased(): bool
+    {
+        return ! $this->isMonthBased();
+    }
+
 
 }

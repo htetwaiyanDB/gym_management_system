@@ -7,6 +7,7 @@ use App\Models\TrainerBooking;
 use App\Models\TrainerPackage;
 use App\Models\User;
 use App\Notifications\NewMessageNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
@@ -43,6 +44,13 @@ class TrainerBookingController extends Controller
                     'sessions_count' => $booking->sessions_count,
                     'price_per_session' => $booking->price_per_session,
                     'sessions_remaining' => $booking->sessions_remaining,
+                    'sessions_start_date' => optional($booking->sessions_start_date)->toIso8601String(),
+                    'sessions_end_date' => optional($booking->sessions_end_date)->toIso8601String(),
+                    'month_start_date' => optional($booking->month_start_date)->toIso8601String(),
+                    'month_end_date' => optional($booking->month_end_date)->toIso8601String(),
+                    'hold_start_date' => optional($booking->hold_start_date)->toIso8601String(),
+                    'hold_end_date' => optional($booking->hold_end_date)->toIso8601String(),
+                    'total_hold_days' => $booking->total_hold_days,
                     'total_price' => $booking->total_price,
                     'status' => $booking->status,
                     'paid_status' => $booking->paid_status,
@@ -97,12 +105,17 @@ class TrainerBookingController extends Controller
             'trainer_package_id' => ['required', Rule::exists('trainer_packages', 'id')],
             'sessions_count' => ['nullable', 'integer', 'min:1'],
             'price_per_session' => ['nullable', 'numeric', 'min:0'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after:start_date'],
             'status' => ['nullable', 'string'],
             'paid_status' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
         ]);
 
         $package = TrainerPackage::findOrFail($validated['trainer_package_id']);
+        $isMonthBased = $package->package_type === 'monthly';
+        $startDate = Carbon::parse($validated['start_date']);
+        $endDate = Carbon::parse($validated['end_date']);
         $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 1);
         $sessionsCount = max(1, $sessionsCount);
         $pricePerSession = (float) ($package->price / $sessionsCount);
@@ -112,6 +125,13 @@ class TrainerBookingController extends Controller
             'trainer_id' => $validated['trainer_id'],
             'trainer_package_id' => $package->id,
             'sessions_count' => $sessionsCount,
+            'sessions_start_date' => $isMonthBased ? null : $startDate,
+            'sessions_end_date' => $isMonthBased ? null : $endDate,
+            'month_start_date' => $isMonthBased ? $startDate : null,
+            'month_end_date' => $isMonthBased ? $endDate : null,
+            'hold_start_date' => null,
+            'hold_end_date' => null,
+            'total_hold_days' => 0,
             'price_per_session' => $pricePerSession,
             'sessions_remaining' => $sessionsCount,
             'total_price' => (float) $package->price,
@@ -126,6 +146,46 @@ class TrainerBookingController extends Controller
             'booking_id' => $booking->id,
         ], Response::HTTP_CREATED);
     }
+
+        public function updateSessions(Request $request, TrainerBooking $booking)
+    {
+        if (! $booking->isSessionBased()) {
+            return response()->json([
+                'message' => 'Sessions can only be adjusted for session-based bookings.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $validated = $request->validate([
+            'sessions_remaining' => ['nullable', 'integer', 'min:0', 'required_without:adjustment'],
+            'adjustment' => ['nullable', 'integer', 'required_without:sessions_remaining'],
+        ]);
+
+        $newRemaining = $booking->sessions_remaining;
+
+        if (array_key_exists('sessions_remaining', $validated)) {
+            $newRemaining = (int) $validated['sessions_remaining'];
+        }
+
+        if (array_key_exists('adjustment', $validated)) {
+            $newRemaining = $booking->sessions_remaining + (int) $validated['adjustment'];
+        }
+
+        if ($newRemaining < 0) {
+            return response()->json([
+                'message' => 'Remaining sessions cannot be negative.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $booking->update([
+            'sessions_remaining' => $newRemaining,
+        ]);
+
+        return response()->json([
+            'message' => 'Remaining sessions updated.',
+            'sessions_remaining' => $booking->sessions_remaining,
+        ]);
+    }
+
 
     public function markPaid(TrainerBooking $booking)
     {
@@ -156,14 +216,87 @@ class TrainerBookingController extends Controller
 
     public function markHold(TrainerBooking $booking)
     {
-        if ($booking->status !== 'hold') {
+        if ($booking->status !== 'on-hold') {
             $booking->update([
-                'status' => 'hold',
+                'status' => 'on-hold',
             ]);
         }
 
         return response()->json([
             'message' => 'Booking marked as hold.',
+        ]);
+    }
+
+        public function hold(TrainerBooking $booking)
+    {
+        if (! $booking->isMonthBased()) {
+            return response()->json([
+                'message' => 'Hold is only available for month-based bookings.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ($booking->status === 'completed') {
+            return response()->json([
+                'message' => 'Completed bookings cannot be placed on hold.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ($booking->status === 'on-hold' || $booking->hold_start_date) {
+            return response()->json([
+                'message' => 'Booking is already on hold.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $today = Carbon::now();
+
+        if ($booking->month_end_date && $booking->month_end_date->lt($today)) {
+            return response()->json([
+                'message' => 'Completed bookings cannot be placed on hold.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $booking->update([
+            'status' => 'on-hold',
+            'hold_start_date' => $today,
+        ]);
+
+        return response()->json([
+            'message' => 'Booking placed on hold.',
+        ]);
+    }
+
+    public function resume(TrainerBooking $booking)
+    {
+        if (! $booking->isMonthBased()) {
+            return response()->json([
+                'message' => 'Resume is only available for month-based bookings.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ($booking->status !== 'on-hold' || ! $booking->hold_start_date) {
+            return response()->json([
+                'message' => 'Booking is not on hold.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $resumeDate = Carbon::now();
+        $holdStartedAt = Carbon::parse($booking->hold_start_date);
+        $holdDays = max(0, $holdStartedAt->diffInDays($resumeDate));
+
+        $booking->month_end_date = $booking->month_end_date
+            ? Carbon::parse($booking->month_end_date)->addDays($holdDays)
+            : null;
+
+        $booking->hold_end_date = $resumeDate;
+        $booking->total_hold_days = (int) $booking->total_hold_days + $holdDays;
+        $booking->hold_start_date = null;
+        $booking->status = 'active';
+        $booking->save();
+
+        return response()->json([
+            'message' => 'Booking resumed.',
+            'total_hold_days' => $booking->total_hold_days,
+            'month_end_date' => optional($booking->month_end_date)->toIso8601String(),
         ]);
     }
 }

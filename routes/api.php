@@ -153,6 +153,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/trainer-bookings/options', [TrainerBookingController::class, 'options']);
         Route::post('/trainer-bookings', [TrainerBookingController::class, 'store']);
         Route::patch('/trainer-bookings/{booking}/mark-paid', [TrainerBookingController::class, 'markPaid']);
+        Route::patch('/trainer-bookings/session/{booking}/sessions', [TrainerBookingController::class, 'updateSessions']);
+        Route::patch('/trainer-bookings/{booking}/hold', [TrainerBookingController::class, 'hold']);
+        Route::patch('/trainer-bookings/{booking}/resume', [TrainerBookingController::class, 'resume']);
+
 
          // Trainer package endpoints
         Route::get('/trainer-packages', [TrainerPackageController::class, 'index']);
