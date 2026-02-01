@@ -7,6 +7,7 @@ use App\Models\AttendanceScan;
 use App\Models\BlogPost;
 use App\Models\Message;
 use App\Models\TrainerBooking;
+use App\Models\BoxingBooking;
 use App\Notifications\NewMessageNotification;
 use App\Models\User;
 use Carbon\Carbon;
@@ -125,6 +126,48 @@ class TrainerController extends Controller
             'bookings' => $bookings,
         ]);
     }
+
+    public function boxingBookings(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $bookings = BoxingBooking::query()
+            ->with(['member', 'boxingPackage'])
+            ->where('trainer_id', $user->id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (BoxingBooking $booking) {
+                return [
+                    'id' => $booking->id,
+                    'member' => [
+                        'id' => $booking->member?->id,
+                        'name' => $booking->member?->name,
+                        'email' => $booking->member?->email,
+                        'phone' => $booking->member?->phone,
+                    ],
+                    'boxing_package' => $booking->boxingPackage
+                        ? [
+                            'id' => $booking->boxingPackage->id,
+                            'name' => $booking->boxingPackage->name,
+                            'package_type' => $booking->boxingPackage->package_type,
+                            'sessions_count' => $booking->boxingPackage->sessions_count,
+                            'duration_months' => $booking->boxingPackage->duration_months,
+                            'price' => (float) $booking->boxingPackage->price,
+                        ]
+                        : null,
+                    'sessions_count' => $booking->sessions_count,
+                    'sessions_remaining' => $booking->sessions_remaining,
+                    'status' => $booking->status,
+                    'paid_status' => $booking->paid_status,
+                    'notes' => $booking->notes,
+                ];
+            });
+
+        return response()->json([
+            'bookings' => $bookings,
+        ]);
+    }
+
 
     public function messages(Request $request): JsonResponse
     {

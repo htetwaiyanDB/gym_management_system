@@ -8,6 +8,7 @@ use App\Models\BlogPost;
 use App\Models\Message;
 use App\Models\MemberMembership;
 use App\Models\TrainerBooking;
+use App\Models\BoxingBooking;
 use App\Models\User;
 use App\Models\PricingSetting;
 use App\Notifications\NewMessageNotification;
@@ -169,6 +170,45 @@ class UserController extends Controller
                             'sessions_count' => $booking->trainerPackage->sessions_count,
                             'duration_months' => $booking->trainerPackage->duration_months,
                             'price' => (float) $booking->trainerPackage->price,
+                        ]
+                        : null,
+                    'sessions_count' => $booking->sessions_count,
+                    'sessions_remaining' => $booking->sessions_remaining,
+                    'status' => $booking->status,
+                ];
+            });
+
+        return response()->json([
+            'bookings' => $bookings,
+        ]);
+    }
+
+    public function boxingBookings(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $bookings = BoxingBooking::query()
+            ->with(['trainer', 'boxingPackage'])
+            ->where('member_id', $user->id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (BoxingBooking $booking) {
+                return [
+                    'id' => $booking->id,
+                    'trainer' => [
+                        'id' => $booking->trainer?->id,
+                        'name' => $booking->trainer?->name,
+                        'phone' => $booking->trainer?->phone,
+                        'email' => $booking->trainer?->email,
+                    ],
+                    'boxing_package' => $booking->boxingPackage
+                        ? [
+                            'id' => $booking->boxingPackage->id,
+                            'name' => $booking->boxingPackage->name,
+                            'package_type' => $booking->boxingPackage->package_type,
+                            'sessions_count' => $booking->boxingPackage->sessions_count,
+                            'duration_months' => $booking->boxingPackage->duration_months,
+                            'price' => (float) $booking->boxingPackage->price,
                         ]
                         : null,
                     'sessions_count' => $booking->sessions_count,

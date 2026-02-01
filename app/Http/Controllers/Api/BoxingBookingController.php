@@ -3,26 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\TrainerBooking;
-use App\Models\TrainerPackage;
+use App\Models\BoxingBooking;
+use App\Models\BoxingPackage;
 use App\Models\User;
-use App\Notifications\NewMessageNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
-class TrainerBookingController extends Controller
+class BoxingBookingController extends Controller
 {
-
     public function index()
     {
-        $bookings = TrainerBooking::query()
-            ->with(['member', 'trainer', 'trainerPackage'])
+        $bookings = BoxingBooking::query()
+            ->with(['member', 'trainer', 'boxingPackage'])
             ->orderByDesc('created_at')
             ->get()
-            ->map(function (TrainerBooking $booking) {
+            ->map(function (BoxingBooking $booking) {
                 return [
                     'id' => $booking->id,
                     'member_id' => $booking->member_id,
@@ -31,15 +28,15 @@ class TrainerBookingController extends Controller
                     'trainer_id' => $booking->trainer_id,
                     'trainer_name' => $booking->trainer?->name ?? 'Unknown',
                     'trainer_phone' => $booking->trainer_phone,
-                    'trainer_package_id' => $booking->trainer_package_id,
-                    'trainer_package' => $booking->trainerPackage
+                    'boxing_package_id' => $booking->boxing_package_id,
+                    'boxing_package' => $booking->boxingPackage
                         ? [
-                            'id' => $booking->trainerPackage->id,
-                            'name' => $booking->trainerPackage->name,
-                            'package_type' => $booking->trainerPackage->package_type,
-                            'sessions_count' => $booking->trainerPackage->sessions_count,
-                            'duration_months' => $booking->trainerPackage->duration_months,
-                            'price' => (float) $booking->trainerPackage->price,
+                            'id' => $booking->boxingPackage->id,
+                            'name' => $booking->boxingPackage->name,
+                            'package_type' => $booking->boxingPackage->package_type,
+                            'sessions_count' => $booking->boxingPackage->sessions_count,
+                            'duration_months' => $booking->boxingPackage->duration_months,
+                            'price' => (float) $booking->boxingPackage->price,
                         ]
                         : null,
                     'sessions_count' => $booking->sessions_count,
@@ -65,8 +62,7 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-
-        public function options()
+    public function options()
     {
         $members = User::query()
             ->where('role', 'user')
@@ -78,7 +74,7 @@ class TrainerBookingController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'phone']);
 
-        $trainerPackages = TrainerPackage::query()
+        $boxingPackages = BoxingPackage::query()
             ->orderBy('package_type')
             ->orderBy('sessions_count')
             ->orderBy('duration_months')
@@ -87,10 +83,9 @@ class TrainerBookingController extends Controller
         return response()->json([
             'members' => $members,
             'trainers' => $trainers,
-            'trainer_packages' => $trainerPackages,
+            'boxing_packages' => $boxingPackages,
         ]);
     }
-
 
     public function store(Request $request)
     {
@@ -103,7 +98,7 @@ class TrainerBookingController extends Controller
                 'required',
                 Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', 'trainer')),
             ],
-            'trainer_package_id' => ['required', Rule::exists('trainer_packages', 'id')],
+            'boxing_package_id' => ['required', Rule::exists('boxing_packages', 'id')],
             'sessions_count' => ['nullable', 'integer', 'min:1'],
             'price_per_session' => ['nullable', 'numeric', 'min:0'],
             'start_date' => ['required', 'date'],
@@ -113,7 +108,7 @@ class TrainerBookingController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $package = TrainerPackage::findOrFail($validated['trainer_package_id']);
+        $package = BoxingPackage::findOrFail($validated['boxing_package_id']);
         $isMonthBased = strtolower((string) $package->package_type) === 'monthly';
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
@@ -124,10 +119,10 @@ class TrainerBookingController extends Controller
         $status = $validated['status'] ?? 'confirmed';
         $paidStatus = $validated['paid_status'] ?? 'unpaid';
 
-        $booking = TrainerBooking::create([
+        $booking = BoxingBooking::create([
             'member_id' => $validated['member_id'],
             'trainer_id' => $validated['trainer_id'],
-            'trainer_package_id' => $package->id,
+            'boxing_package_id' => $package->id,
             'sessions_count' => $sessionsCount,
             'sessions_start_date' => $isMonthBased ? null : $startDate,
             'sessions_end_date' => $isMonthBased ? null : $endDate,
@@ -146,12 +141,12 @@ class TrainerBookingController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Trainer booking created successfully.',
+            'message' => 'Boxing booking created successfully.',
             'booking_id' => $booking->id,
         ], Response::HTTP_CREATED);
     }
 
-        public function updateSessions(Request $request, TrainerBooking $booking)
+    public function updateSessions(Request $request, BoxingBooking $booking)
     {
         if (! $booking->isSessionBased()) {
             return response()->json([
@@ -190,11 +185,10 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-
-    public function markPaid(TrainerBooking $booking)
+    public function markPaid(BoxingBooking $booking)
     {
         if ($booking->paid_status !== 'paid') {
-                 $booking->update([
+            $booking->update([
                 'paid_status' => 'paid',
                 'paid_at' => now(),
             ]);
@@ -205,7 +199,7 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-        public function markActive(TrainerBooking $booking)
+    public function markActive(BoxingBooking $booking)
     {
         if ($booking->status !== 'active') {
             $booking->update([
@@ -218,7 +212,7 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-    public function markHold(TrainerBooking $booking)
+    public function markHold(BoxingBooking $booking)
     {
         if ($booking->status !== 'on-hold') {
             $booking->update([
@@ -231,7 +225,7 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-        public function hold(TrainerBooking $booking)
+    public function hold(BoxingBooking $booking)
     {
         if (! $booking->isMonthBased()) {
             return response()->json([
@@ -269,7 +263,7 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-    public function resume(TrainerBooking $booking)
+    public function resume(BoxingBooking $booking)
     {
         if (! $booking->isMonthBased()) {
             return response()->json([

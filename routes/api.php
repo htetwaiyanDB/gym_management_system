@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TrainerBookingController;
 use App\Http\Controllers\Api\TrainerPackageController;
+use App\Http\Controllers\Api\BoxingBookingController;
+use App\Http\Controllers\Api\BoxingPackageController;
+use App\Http\Controllers\Api\BoxingSessionController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\TrainerController;
@@ -97,9 +100,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/check-in', [TrainerController::class, 'checkIn']);
         Route::post('/check-in/scan', [TrainerController::class, 'scanFromQr']);
         Route::get('/subscriptions', [TrainerController::class, 'subscriptions']);
+        Route::get('/boxing-bookings', [TrainerController::class, 'boxingBookings']);
         Route::get('/messages', [TrainerController::class, 'messages']);
         Route::post('/messages', [TrainerController::class, 'sendMessage']);
         Route::post('/bookings/{booking}/confirm', [TrainerSessionController::class, 'confirm']);
+        Route::post('/boxing-bookings/{booking}/confirm', [BoxingSessionController::class, 'confirm']);
     });
 
     Route::middleware('role:user')->prefix('user')->group(function () {
@@ -107,10 +112,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/check-in', [UserController::class, 'checkIn']);
         Route::post('/check-in/scan', [UserController::class, 'scanFromQr']);
         Route::get('/subscriptions', [UserController::class, 'subscriptions']);
+        Route::get('/boxing-bookings', [UserController::class, 'boxingBookings']);
         Route::get('/bookings', [UserController::class, 'bookings']);
         Route::get('/messages', [UserController::class, 'messages']);
         Route::post('/messages', [UserController::class, 'sendMessage']);
         Route::post('/bookings/{booking}/confirm', [TrainerSessionController::class, 'confirm']);
+        Route::post('/boxing-bookings/{booking}/confirm', [BoxingSessionController::class, 'confirm']);
     });
 
     // User management endpoints - ONLY accessible by administrator
@@ -157,6 +164,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/trainer-bookings/{booking}/hold', [TrainerBookingController::class, 'hold']);
         Route::patch('/trainer-bookings/{booking}/resume', [TrainerBookingController::class, 'resume']);
 
+        //Boxing bookin endpoints
+        Route::get('/boxing-bookings', [BoxingBookingController::class, 'index']);
+        Route::get('/boxing-bookings/options', [BoxingBookingController::class, 'options']);
+        Route::post('/boxing-bookings', [BoxingBookingController::class, 'store']);
+        Route::patch('/boxing-bookings/{booking}/mark-paid', [BoxingBookingController::class, 'markPaid']);
+        Route::patch('/boxing-bookings/session/{booking}/sessions', [BoxingBookingController::class, 'updateSessions']);
+        Route::patch('/boxing-bookings/{booking}/hold', [BoxingBookingController::class, 'hold']);
+        Route::patch('/boxing-bookings/{booking}/resume', [BoxingBookingController::class, 'resume']);
+
 
          // Trainer package endpoints
         Route::get('/trainer-packages', [TrainerPackageController::class, 'index']);
@@ -167,6 +183,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/trainer-packages/{trainerPackage}', [TrainerPackageController::class, 'destroy']);
         Route::patch('/trainer-bookings/{booking}/mark-active', [TrainerBookingController::class, 'markActive']);
         Route::patch('/trainer-bookings/{booking}/mark-hold', [TrainerBookingController::class, 'markHold']);
+
+        //Boxing package endpoints
+        Route::get('/boxing-packages', [BoxingPackageController::class, 'index']);
+        Route::get('/boxing-packages/{boxingPackage}', [BoxingPackageController::class, 'show']);
+        Route::post('/boxing-packages', [BoxingPackageController::class, 'store']);
+        Route::put('/boxing-packages/{boxingPackage}', [BoxingPackageController::class, 'update']);
+        Route::patch('/boxing-packages/{boxingPackage}', [BoxingPackageController::class, 'update']);
+        Route::delete('/boxing-packages/{boxingPackage}', [BoxingPackageController::class, 'destroy']);
+        Route::patch('/boxing-bookings/{booking}/mark-active', [BoxingBookingController::class, 'markActive']);
+        Route::patch('/boxing-bookings/{booking}/mark-hold', [BoxingBookingController::class, 'markHold']);
 
         // Subscription management endpoints
         Route::prefix('subscriptions')->group(function () {
