@@ -27,7 +27,7 @@ return new class extends Migration
         DB::table('boxing_packages')->insert([
             [
                 'name' => '10 Sessions',
-                'package_type' => 'boxing',
+                'package_type' => 'personal',
                 'sessions_count' => 10,
                 'duration_months' => null,
                 'price' => 300000,
@@ -36,7 +36,7 @@ return new class extends Migration
             ],
             [
                 'name' => '20 Sessions',
-                'package_type' => 'boxing',
+                'package_type' => 'personal',
                 'sessions_count' => 20,
                 'duration_months' => null,
                 'price' => 580000,
@@ -45,7 +45,7 @@ return new class extends Migration
             ],
             [
                 'name' => '30 Sessions',
-                'package_type' => 'boxing',
+                'package_type' => 'personal',
                 'sessions_count' => 30,
                 'duration_months' => null,
                 'price' => 840000,
