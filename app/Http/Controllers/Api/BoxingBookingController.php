@@ -112,8 +112,19 @@ class BoxingBookingController extends Controller
         $isMonthBased = strtolower((string) $package->package_type) === 'monthly';
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
-        $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 1);
-        $sessionsCount = max(1, $sessionsCount);
+        $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 0);
+
+        if ($sessionsCount < 1) {
+            return response()->json([
+                'message' => 'Sessions count must be at least 1.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ((float) $package->price <= 0) {
+            return response()->json([
+                'message' => 'Package price must be greater than 0.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
         $pricePerSession = (float) ($package->price / $sessionsCount);
 
         $status = $validated['status'] ?? 'confirmed';
