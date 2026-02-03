@@ -7,6 +7,7 @@ use App\Models\BoxingBooking;
 use App\Models\BoxingPackage;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
@@ -112,14 +113,26 @@ class BoxingBookingController extends Controller
         $isMonthBased = strtolower((string) $package->package_type) === 'monthly';
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
-        $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 1);
-        $sessionsCount = max(1, $sessionsCount);
+        $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 0);
+
+        if ($sessionsCount < 1) {
+            return response()->json([
+                'message' => 'Sessions count must be at least 1.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ((float) $package->price <= 0) {
+            return response()->json([
+                'message' => 'Package price must be greater than 0.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $pricePerSession = (float) ($package->price / $sessionsCount);
 
         $status = $validated['status'] ?? 'confirmed';
         $paidStatus = $validated['paid_status'] ?? 'unpaid';
 
-        $booking = BoxingBooking::create([
+        $payload = [
             'member_id' => $validated['member_id'],
             'trainer_id' => $validated['trainer_id'],
             'boxing_package_id' => $package->id,
@@ -138,7 +151,16 @@ class BoxingBookingController extends Controller
             'paid_status' => $paidStatus,
             'paid_at' => $paidStatus === 'paid' ? now() : null,
             'notes' => $validated['notes'] ?? null,
-        ]);
+        ];
+
+        try {
+            $booking = BoxingBooking::create($payload);
+        } catch (QueryException $exception) {
+            return response()->json([
+                'message' => 'Unable to create boxing booking. Verify database schema and data.',
+                'error' => config('app.debug') ? $exception->getMessage() : null,
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         return response()->json([
             'message' => 'Boxing booking created successfully.',
