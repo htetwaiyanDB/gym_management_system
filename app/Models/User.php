@@ -28,6 +28,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
+        'card_id',
         'notifications_enabled',
         'email_verified_at',
         'email_verification_code',

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\BoxingBookingController;
 use App\Http\Controllers\Api\BoxingPackageController;
 use App\Http\Controllers\Api\BoxingSessionController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\RfidAttendanceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\TrainerController;
 use App\Http\Controllers\Api\TrainerSessionController;
@@ -120,6 +121,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/boxing-bookings/{booking}/confirm', [BoxingSessionController::class, 'confirm']);
     });
 
+    // RFID attendance scan endpoint (authenticated system/device token)
+    Route::post('/attendance/rfid/scan', [RfidAttendanceController::class, 'scan']);
+
+
     // User management endpoints - ONLY accessible by administrator
     Route::middleware('administrator')->group(function () {
         // List users (active by default, add ?deleted=true for deleted users)
@@ -211,6 +216,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/scan', [AttendanceController::class, 'scan']);
             Route::post('/scan/qr', [AttendanceController::class, 'scanFromQr']);
             Route::post('/qr/refresh', [AttendanceController::class, 'refreshQr']);
+            Route::post('/rfid/register', [RfidAttendanceController::class, 'registerCard']);
         });
 
         Route::get('/dashboard/attendance-report', [DashboardController::class, 'attendanceReport']);
