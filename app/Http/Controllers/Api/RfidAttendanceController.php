@@ -118,9 +118,15 @@ class RfidAttendanceController extends Controller
         if ($result['action'] === 'already_checked_out') {
             return response()->json([
                 'message' => 'Attendance already completed for today.',
-                'record' => [
-                    'username' => $user->name,
+                'user' => [
+                    'id' => $user->id,
+                    'member_id' => $user->user_id,
+                    'name' => $user->name,
                     'role' => $user->role,
+                    'card_id' => $user->card_id,
+                    ],
+                'attendance' => [
+                    'action' => $result['action'],
                     'check_in_time' => $result['attendance']->check_in_time?->toIso8601String(),
                     'check_out_time' => $result['attendance']->check_out_time?->toIso8601String(),
                     'attendance_date' => $result['attendance']->attendance_date?->toDateString(),
@@ -133,9 +139,14 @@ class RfidAttendanceController extends Controller
             'message' => $result['action'] === 'check_in'
                 ? 'Check-in recorded successfully.'
                 : 'Check-out recorded successfully.',
-            'record' => [
-                'username' => $user->name,
+            'user' => [
+                'id' => $user->id,
+                'member_id' => $user->user_id,
+                'name' => $user->name,
                 'role' => $user->role,
+                'card_id' => $user->card_id,
+            ],
+            'attendance' => [
                 'action' => $result['action'],
                 'check_in_time' => $result['attendance']->check_in_time?->toIso8601String(),
                 'check_out_time' => $result['attendance']->check_out_time?->toIso8601String(),
