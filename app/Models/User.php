@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\AttendanceScan;
+use App\Models\TrainerBooking;
+use App\Models\BoxingBooking;
+use App\Models\MemberMembership;
 
 class User extends Authenticatable
 {
@@ -131,4 +134,25 @@ class User extends Authenticatable
     {
         return $this->hasMany(AttendanceScan::class);
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(AttendanceScan::class);
+    }
+
+    public function trainerBookings()
+    {
+        return $this->hasMany(TrainerBooking::class, 'member_id');
+    }
+
+    public function boxingBookings()
+    {
+        return $this->hasMany(BoxingBooking::class, 'member_id');
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(MemberMembership::class, 'member_id');
+    }
+
 }

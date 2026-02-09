@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\TrainerController;
 use App\Http\Controllers\Api\TrainerSessionController;
 use App\Http\Controllers\Api\UserMessageController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\UserRecordsController;
 use Mews\Captcha\Facades\Captcha;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
@@ -135,6 +136,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Delete a user (permanent delete)
         Route::delete('/users/{id}', [AuthController::class, 'destroy']);
+
+
+        // User records endpoint
+        Route::get('/users/{id}/records', [UserRecordsController::class, 'records']);
 
         // Update a user
         Route::put('/users/{id}', [AuthController::class, 'updateUser']);
