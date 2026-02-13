@@ -307,7 +307,7 @@ class AuthController extends Controller
         if ($showDeleted) {
             // Get all soft-deleted users, excluding sensitive fields
             $users = User::onlyTrashed()
-                ->select('user_id', 'name', 'email', 'phone', 'role', 'email_verified_at', 'notifications_enabled', 'created_at', 'updated_at', 'deleted_at')
+                ->select('id', 'user_id', 'name', 'email', 'phone', 'role', 'email_verified_at', 'notifications_enabled', 'created_at', 'updated_at', 'deleted_at')
                 ->orderBy('deleted_at', 'desc')
                 ->get();
 
@@ -327,7 +327,7 @@ class AuthController extends Controller
         }
 
         // Get all active users (default), excluding sensitive fields
-        $users = User::select('user_id', 'name','phone','email', 'role', 'email_verified_at', 'created_at', 'updated_at')
+        $users = User::select('id', 'user_id', 'name','phone','email', 'role', 'email_verified_at', 'created_at', 'updated_at')
             ->orderBy('created_at', 'desc')
             ->get();
 
