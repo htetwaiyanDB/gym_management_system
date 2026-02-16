@@ -140,10 +140,21 @@ class User extends Authenticatable
         return $this->hasMany(AttendanceScan::class);
     }
 
+    public function trainerAssignments()
+    {
+        return $this->hasMany(TrainerBooking::class, 'trainer_id');
+    }
+
     public function trainerBookings()
     {
         return $this->hasMany(TrainerBooking::class, 'member_id');
     }
+
+    public function boxingAssignments()
+    {
+        return $this->hasMany(BoxingBooking::class, 'trainer_id');
+    }
+
 
     public function boxingBookings()
     {

@@ -12,14 +12,29 @@ class UserRecordsController extends Controller
     public function records(int $id): JsonResponse
     {
         try {
-            $user = User::with([
+            $user = User::findOrFail($id);
+            $isTrainer = $user->role === 'trainer';
+            $user->load([
                 'subscriptions',
-                'trainerBookings',
-                'boxingBookings',
-            ])->findOrFail($id);
+                    $isTrainer
+                    ? 'trainerAssignments.member:id,name,email,phone'
+                    : 'trainerBookings.trainer:id,name,email,phone',
+                $isTrainer
+                    ? 'boxingAssignments.member:id,name,email,phone'
+                    : 'boxingBookings.trainer:id,name,email,phone',
+            ]);
         } catch (ModelNotFoundException $exception) {
             return response()->json(['message' => 'User not found.'], 404);
         }
+
+        $trainerBookings = $user->role === 'trainer'
+            ? $user->trainerAssignments
+            : $user->trainerBookings;
+
+        $boxingBookings = $user->role === 'trainer'
+            ? $user->boxingAssignments
+            : $user->boxingBookings;
+
 
         return response()->json([
             'user' => [
@@ -30,8 +45,8 @@ class UserRecordsController extends Controller
                 'role' => $user->role,
             ],
             'subscriptions' => $user->subscriptions,
-            'trainer_bookings' => $user->trainerBookings,
-            'boxing_bookings' => $user->boxingBookings,
+            'trainer_bookings' => $trainerBookings,
+            'boxing_bookings' => $boxingBookings,
         ]);
     }
 }
