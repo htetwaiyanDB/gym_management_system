@@ -13,7 +13,7 @@ return new class extends Migration
         DB::table('membership_plans')->updateOrInsert(
             ['name' => 'Class'],
             [
-                'duration_days' => 1,
+                'duration_days' => 30,
                 'is_active' => true,
                 'updated_at' => now(),
                 'created_at' => now(),

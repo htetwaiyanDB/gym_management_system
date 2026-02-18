@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pricing_settings', function (Blueprint $table) {
-            //
-        });
+        if (! Schema::hasColumn('pricing_settings', 'class_subscription_price')) {
+            Schema::table('pricing_settings', function (Blueprint $table) {
+                $table->decimal('class_subscription_price', 10, 2)
+                    ->default(70000)
+                    ->after('annual_subscription_price');
+            });
+        }
     }
 
     /**
@@ -21,8 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('pricing_settings', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('pricing_settings', 'class_subscription_price')) {
+            Schema::table('pricing_settings', function (Blueprint $table) {
+                $table->dropColumn('class_subscription_price');
+            });
+        }
     }
 };
