@@ -20,6 +20,7 @@ class PricingController extends Controller
                 'three_month_subscription_price' => 240000,
                 'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
+                'class_subscription_price' => 70000,
             ]
         );
 
@@ -42,6 +43,7 @@ class PricingController extends Controller
                 'three_months' => $pricingSetting->three_month_subscription_price,
                 'six_months' => $pricingSetting->quarterly_subscription_price,
                 'twelve_months' => $pricingSetting->annual_subscription_price,
+                'class' => $pricingSetting->class_subscription_price,
             ],
             'trainers' => $trainers,
         ]);
@@ -91,6 +93,7 @@ class PricingController extends Controller
                 'three_month_subscription_price' => 240000,
                 'quarterly_subscription_price' => 500000,
                 'annual_subscription_price' => 800000,
+                'class_subscription_price' => 70000,
             ]
         );
 
@@ -122,6 +125,7 @@ class PricingController extends Controller
                 'three_month_subscription_price' => 240000,
                 'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
+                'class_subscription_price' => 70000,
             ]
         );
 
@@ -153,6 +157,7 @@ class PricingController extends Controller
                 'three_month_subscription_price' => 240000,
                 'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
+                'class_subscription_price' => 70000,
             ]
         );
 
@@ -184,6 +189,7 @@ class PricingController extends Controller
                 'three_month_subscription_price' => 240000,
                 'quarterly_subscription_price' => 400000,
                 'annual_subscription_price' => 960000,
+                'class_subscription_price' => 70000,
             ]
         );
 
@@ -195,6 +201,38 @@ class PricingController extends Controller
             'message' => '12-month subscription price updated.',
             'pricing' => [
                 'twelve_month_subscription_price' => $pricingSetting->annual_subscription_price,
+            ],
+        ]);
+    }
+
+        /**
+     * Update Class Subscription Price
+     */
+    public function updateClass(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'class_subscription_price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $pricingSetting = PricingSetting::firstOrCreate(
+            [],
+            [
+                'monthly_subscription_price' => 80000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 960000,
+                'class_subscription_price' => 70000,
+            ]
+        );
+
+        $pricingSetting->update([
+            'class_subscription_price' => $validated['class_subscription_price'],
+        ]);
+
+        return response()->json([
+            'message' => 'Class subscription price updated.',
+            'pricing' => [
+                'class_subscription_price' => $pricingSetting->class_subscription_price,
             ],
         ]);
     }

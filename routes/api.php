@@ -163,6 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/pricing/three-months', [PricingController::class, 'updateThreeMonths']);
         Route::put('/pricing/six-months', [PricingController::class, 'updateSixMonths']);
         Route::put('/pricing/twelve-months', [PricingController::class, 'updateTwelveMonths']);
+        Route::put('/pricing/class', [PricingController::class, 'updateClass']);
         Route::put('/pricing/trainers/{user}', [PricingController::class, 'updateTrainer']);
 
         // Trainer booking endpoints
