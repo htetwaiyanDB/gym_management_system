@@ -76,7 +76,7 @@ class BoxingBooking extends Model
 
     public function isMonthBased(): bool
     {
-        return strtolower((string) $this->boxingPackage?->package_type) === 'monthly';
+        return (int) ($this->boxingPackage?->duration_months ?? 0) > 0;
     }
 
     public function isSessionBased(): bool

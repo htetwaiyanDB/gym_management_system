@@ -110,7 +110,7 @@ class BoxingBookingController extends Controller
         ]);
 
         $package = BoxingPackage::findOrFail($validated['boxing_package_id']);
-        $isMonthBased = strtolower((string) $package->package_type) === 'monthly';
+        $isMonthBased = (int) ($package->duration_months ?? 0) > 0;
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
         $requestedSessions = $validated['sessions_count'] ?? null;
