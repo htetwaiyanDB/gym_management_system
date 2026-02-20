@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\PricingSetting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,7 @@ class UserRecordsController extends Controller
             $user = User::findOrFail($id);
             $isTrainer = $user->role === 'trainer';
             $user->load([
-            'subscriptions.plan:id,name',
+              'subscriptions.plan:id,name,duration_days',
                 $isTrainer
                     ? 'trainerAssignments.member:id,name,email,phone'
                     : 'trainerBookings.trainer:id,name,email,phone',
@@ -32,6 +33,18 @@ class UserRecordsController extends Controller
         } catch (ModelNotFoundException $exception) {
             return response()->json(['message' => 'User not found.'], 404);
         }
+
+        $pricingSetting = PricingSetting::query()->firstOrCreate(
+            [],
+            [
+                'class_subscription_price' => 70000,
+                'monthly_subscription_price' => 80000,
+                'three_month_subscription_price' => 240000,
+                'quarterly_subscription_price' => 400000,
+                'annual_subscription_price' => 960000,
+            ]
+        );
+
 
         $trainerBookings = $user->role === 'trainer'
             ? $user->trainerAssignments
@@ -50,10 +63,18 @@ class UserRecordsController extends Controller
                 'phone' => $user->phone,
                 'role' => $user->role,
             ],
-            'subscriptions' => $user->subscriptions->map(function ($subscription) {
+             'subscriptions' => $user->subscriptions->map(function ($subscription) use ($pricingSetting) {
+                $planPrice = $this->resolvePlanPrice($subscription->plan?->duration_days, $pricingSetting);
                 return [
                     ...$subscription->toArray(),
                     'plan_name' => $subscription->plan?->name,
+                    'plan_price' => $planPrice,
+                    'plan' => $subscription->plan
+                        ? [
+                            ...$subscription->plan->toArray(),
+                            'price' => $planPrice,
+                        ]
+                        : null,
                 ];
             })->values(),
             'trainer_bookings' => $trainerBookings->map(function ($booking) {
@@ -71,6 +92,30 @@ class UserRecordsController extends Controller
                 ];
             })->values(),
         ]);
+    }
+        private function resolvePlanPrice(?int $durationDays, ?PricingSetting $pricingSetting): ?float
+    {
+        if (! $pricingSetting || ! $durationDays) {
+            return null;
+        }
+
+        if ($durationDays >= 360) {
+            return (float) $pricingSetting->annual_subscription_price;
+        }
+
+        if ($durationDays >= 180) {
+            return (float) $pricingSetting->quarterly_subscription_price;
+        }
+
+        if ($durationDays >= 90) {
+            return (float) $pricingSetting->three_month_subscription_price;
+        }
+
+        if ($durationDays >= 30) {
+            return (float) $pricingSetting->monthly_subscription_price;
+        }
+
+        return (float) $pricingSetting->class_subscription_price;
     }
 }
 
