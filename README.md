@@ -16,7 +16,7 @@ A Laravel-based gym management platform that supports member and trainer onboard
 ## Tech Stack
 
 - **Backend:** Laravel 12, PHP 8.2
-- **Frontend tooling:** Vite, Tailwind CSS, Alpine.js
+- **Frontend tooling:** Vite, Tailwind CSS, Alpine.js and React
 - **Auth:** Laravel Sanctum
 - **Utilities:** Intervention Image, CAPTCHA providers
 
