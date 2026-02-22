@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
+    private const CLASS_PLAN_NAME = 'Class';
+
     public function home(): JsonResponse
     {
         $posts = BlogPost::query()
@@ -101,6 +103,7 @@ class UserController extends Controller
         $pricingSetting = PricingSetting::query()->firstOrCreate(
             [],
             [
+                'class_subscription_price' => 70000,
                 'monthly_subscription_price' => 80000,
                 'three_month_subscription_price' => 240000,
                 'quarterly_subscription_price' => 400000,
@@ -113,7 +116,7 @@ class UserController extends Controller
         return response()->json([
             'subscriptions' => $subscriptions->map(function (MemberMembership $subscription) use ($pricingSetting, $today) {
                 $durationDays = $subscription->plan?->duration_days ?? 0;
-                $price = $this->resolvePlanPrice($durationDays, $pricingSetting);
+                $price = $this->resolvePlanPrice($subscription->plan?->name, $durationDays, $pricingSetting);
 
                 $holdDays = 0;
                 $adjustedEndDate = $subscription->end_date;
@@ -307,11 +310,16 @@ class UserController extends Controller
         ];
     }
 
-    private function resolvePlanPrice(?int $durationDays, ?PricingSetting $pricingSetting): ?float
+    private function resolvePlanPrice(?string $planName, ?int $durationDays, ?PricingSetting $pricingSetting): ?float
     {
         if (! $pricingSetting || ! $durationDays) {
             return null;
         }
+
+        if ($planName === self::CLASS_PLAN_NAME) {
+            return (float) $pricingSetting->class_subscription_price;
+        }
+
 
         if ($durationDays >= 360) {
             return (float) $pricingSetting->annual_subscription_price;
