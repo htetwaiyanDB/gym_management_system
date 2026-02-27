@@ -71,6 +71,8 @@ class SubscriptionController extends Controller
                     'plan_name' => $subscription->plan?->name ?? 'Plan',
                     'duration_days' => $durationDays,
                     'price' => $price,
+                    'discount_percentage' => (float) ($subscription->discount_percentage ?? 0),
+                    'final_price' => (float) ($subscription->final_price ?? $price ?? 0),
                     'created_at' => optional($subscription->created_at)->toIso8601String(),
                     'start_date' => optional($subscription->start_date)->toDateString(),
                     'end_date' => optional($adjustedEndDate)->toDateString(),
