@@ -117,6 +117,23 @@ class UserController extends Controller
             'subscriptions' => $subscriptions->map(function (MemberMembership $subscription) use ($pricingSetting, $today) {
                 $durationDays = $subscription->plan?->duration_days ?? 0;
                 $price = $this->resolvePlanPrice($subscription->plan?->name, $durationDays, $pricingSetting);
+                $discountPercentage = $subscription->discount_percentage !== null
+                    ? (float) $subscription->discount_percentage
+                    : null;
+                $storedFinalPrice = $subscription->final_price !== null
+                    ? (float) $subscription->final_price
+                    : null;
+
+                $finalPrice = $storedFinalPrice;
+
+                if (
+                    ($finalPrice === null || $finalPrice <= 0)
+                    && ($discountPercentage === null || $discountPercentage <= 0)
+                    && $price !== null
+                ) {
+                    $finalPrice = (float) $price;
+                }
+
 
                 $holdDays = 0;
                 $adjustedEndDate = $subscription->end_date;
@@ -136,6 +153,8 @@ class UserController extends Controller
                     'plan_name' => $subscription->plan?->name ?? 'Plan',
                     'duration_days' => $durationDays,
                     'price' => $price,
+                    'discount_percentage' => $discountPercentage,
+                    'final_price' => $finalPrice ?? 0,
                     'created_at' => optional($subscription->created_at)->toIso8601String(),
                     'start_date' => optional($subscription->start_date)->toDateString(),
                     'end_date' => optional($adjustedEndDate)->toDateString(),
