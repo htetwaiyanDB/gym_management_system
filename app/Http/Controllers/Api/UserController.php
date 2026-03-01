@@ -196,6 +196,9 @@ class UserController extends Controller
                         : null,
                     'sessions_count' => $booking->sessions_count,
                     'sessions_remaining' => $booking->sessions_remaining,
+                    'total_price' => (float) $booking->total_price,
+                    'discount_percentage' => (float) $booking->discount_percentage,
+                    'final_price' => (float) $booking->final_price,
                     'status' => $booking->status,
                 ];
             });
@@ -235,6 +238,9 @@ class UserController extends Controller
                         : null,
                     'sessions_count' => $booking->sessions_count,
                     'sessions_remaining' => $booking->sessions_remaining,
+                    'total_price' => (float) $booking->total_price,
+                    'discount_percentage' => (float) $booking->discount_percentage,
+                    'final_price' => (float) $booking->final_price,
                     'status' => $booking->status,
                 ];
             });
