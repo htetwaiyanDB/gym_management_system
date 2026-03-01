@@ -27,6 +27,8 @@ class BoxingBooking extends Model
         'total_hold_days',
         'price_per_session',
         'total_price',
+        'discount_amount',
+        'final_price',
         'status',
         'paid_status',
         'paid_at',
