@@ -27,7 +27,7 @@ class TrainerBooking extends Model
         'total_hold_days',
         'price_per_session',
         'total_price',
-        'discount_amount',
+        'discount_percentage',
         'final_price',
         'status',
         'paid_status',
@@ -44,7 +44,7 @@ class TrainerBooking extends Model
         'hold_start_date' => 'datetime',
         'hold_end_date' => 'datetime',
         'total_hold_days' => 'integer',
-        'discount_amount' => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
         'final_price' => 'decimal:2',
     ];
 

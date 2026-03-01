@@ -53,7 +53,7 @@ class TrainerBookingController extends Controller
                     'hold_end_date' => optional($booking->hold_end_date)->toIso8601String(),
                     'total_hold_days' => $booking->total_hold_days,
                     'total_price' => $booking->total_price,
-                    'discount_amount' => $booking->discount_amount,
+                    'discount_percentage' => $booking->discount_percentage,
                     'final_price' => $booking->final_price,
                     'status' => $booking->status,
                     'paid_status' => $booking->paid_status,
@@ -110,7 +110,7 @@ class TrainerBookingController extends Controller
             'price_per_session' => ['nullable', 'numeric', 'min:0'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after:start_date'],
-            'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'discount_percentage' => ['nullable', 'numeric', 'between:0,100'],
             'status' => ['nullable', 'string'],
             'paid_status' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
@@ -124,8 +124,9 @@ class TrainerBookingController extends Controller
         $sessionsCount = max(1, $sessionsCount);
         $pricePerSession = (float) ($package->price / $sessionsCount);
         $totalPrice = (float) $package->price;
-        $discountAmount = min((float) ($validated['discount_amount'] ?? 0), $totalPrice);
-        $finalPrice = max(0, $totalPrice - $discountAmount);
+        $discountPercentage = (float) ($validated['discount_percentage'] ?? 0);
+        $discountPercentage = max(0, min($discountPercentage, 100));
+        $finalPrice = max(0, $totalPrice - (($totalPrice * $discountPercentage) / 100));
 
         $status = $validated['status'] ?? 'confirmed';
         $paidStatus = $validated['paid_status'] ?? 'unpaid';
@@ -145,7 +146,7 @@ class TrainerBookingController extends Controller
             'price_per_session' => $pricePerSession,
             'sessions_remaining' => $sessionsCount,
             'total_price' => $totalPrice,
-            'discount_amount' => $discountAmount,
+            'discount_percentage' => $discountPercentage,
             'final_price' => $finalPrice,
             'status' => $status,
             'paid_status' => $paidStatus,

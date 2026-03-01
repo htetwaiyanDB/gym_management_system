@@ -13,8 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('trainer_bookings', function (Blueprint $table) {
-            $table->decimal('discount_amount', 10, 2)->default(0)->after('total_price');
-            $table->decimal('final_price', 10, 2)->default(0)->after('discount_amount');
+            $table->decimal('discount_percentage', 5, 2)->default(0)->after('total_price');
+            $table->decimal('final_price', 10, 2)->default(0)->after('discount_percentage');
         });
 
         DB::table('trainer_bookings')->update([
@@ -28,7 +28,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('trainer_bookings', function (Blueprint $table) {
-            $table->dropColumn(['discount_amount', 'final_price']);
+            $table->dropColumn(['discount_percentage', 'final_price']);
         });
     }
 };
