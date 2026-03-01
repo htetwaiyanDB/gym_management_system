@@ -213,10 +213,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('subscriptions')->group(function () {
         Route::get('/', [SubscriptionController::class, 'index']);
         Route::post('/', [SubscriptionController::class, 'store']);
+        Route::post('/all-hold', [SubscriptionController::class, 'holdAll']);
         Route::get('/options', [SubscriptionController::class, 'options']);
         Route::post('/{subscription}/hold', [SubscriptionController::class, 'hold']);
         Route::post('/{subscription}/resume', [SubscriptionController::class, 'resume']);
         });
+
+        Route::post('/subscription/all-hold', [SubscriptionController::class, 'holdAll']);
 
         Route::prefix('attendance')->group(function () {
             Route::get('/users', [AttendanceController::class, 'users']);

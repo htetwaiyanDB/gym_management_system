@@ -241,6 +241,34 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    public function holdAll()
+    {
+        $today = Carbon::today();
+
+        $updatedCount = MemberMembership::query()
+            ->where('is_on_hold', false)
+            ->where(function ($query) use ($today) {
+                $query->where('is_expired', false)
+                    ->orWhereNull('is_expired');
+            })
+            ->where(function ($query) use ($today) {
+                $query->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $today->toDateString());
+            })
+            ->update([
+                'is_on_hold' => true,
+                'hold_started_at' => $today,
+            ]);
+
+        return response()->json([
+            'message' => $updatedCount > 0
+                ? 'All active subscriptions have been placed on hold.'
+                : 'No active subscriptions were available to place on hold.',
+            'updated_count' => $updatedCount,
+        ]);
+    }
+
+
     private function resolvePlanPrice(?string $planName, ?int $durationDays, ?PricingSetting $pricingSetting): ?float
     {
         if (! $pricingSetting || ! $durationDays) {
