@@ -27,7 +27,7 @@ class BoxingBooking extends Model
         'total_hold_days',
         'price_per_session',
         'total_price',
-        'discount_amount',
+        'discount_percentage',
         'final_price',
         'status',
         'paid_status',
@@ -44,6 +44,8 @@ class BoxingBooking extends Model
         'hold_start_date' => 'datetime',
         'hold_end_date' => 'datetime',
         'total_hold_days' => 'integer',
+        'discount_percentage' => 'decimal:2',
+        'final_price' => 'decimal:2',
     ];
 
     public function member()
