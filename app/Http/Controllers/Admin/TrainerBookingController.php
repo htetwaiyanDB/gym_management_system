@@ -57,6 +57,7 @@ class TrainerBookingController extends Controller
             'trainer_package_id' => ['required', Rule::exists('trainer_packages', 'id')],
             'sessions_count' => ['nullable', 'integer', 'min:1'],
             'price_per_session' => ['nullable', 'numeric', 'min:0'],
+            'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'string'],
             'paid_status' => ['required', 'string'],
             'notes' => ['nullable', 'string'],
@@ -66,6 +67,9 @@ class TrainerBookingController extends Controller
         $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 1);
         $sessionsCount = max(1, $sessionsCount);
         $pricePerSession = (float) ($package->price / $sessionsCount);
+        $totalPrice = (float) $package->price;
+        $discountAmount = min((float) ($validated['discount_amount'] ?? 0), $totalPrice);
+        $finalPrice = max(0, $totalPrice - $discountAmount);
 
         TrainerBooking::create([
             'member_id' => $validated['member_id'],
@@ -74,7 +78,9 @@ class TrainerBookingController extends Controller
             'sessions_count' => $sessionsCount,
             'price_per_session' => $pricePerSession,
             'sessions_remaining' => $sessionsCount,
-            'total_price' => (float) $package->price,
+            'total_price' => $totalPrice,
+            'discount_amount' => $discountAmount,
+            'final_price' => $finalPrice,
             'status' => $validated['status'],
             'paid_status' => $validated['paid_status'],
             'paid_at' => $validated['paid_status'] === 'paid' ? now() : null,

@@ -53,6 +53,8 @@ class TrainerBookingController extends Controller
                     'hold_end_date' => optional($booking->hold_end_date)->toIso8601String(),
                     'total_hold_days' => $booking->total_hold_days,
                     'total_price' => $booking->total_price,
+                    'discount_amount' => $booking->discount_amount,
+                    'final_price' => $booking->final_price,
                     'status' => $booking->status,
                     'paid_status' => $booking->paid_status,
                     'paid_at' => optional($booking->paid_at)->toIso8601String(),
@@ -108,6 +110,7 @@ class TrainerBookingController extends Controller
             'price_per_session' => ['nullable', 'numeric', 'min:0'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after:start_date'],
+            'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'status' => ['nullable', 'string'],
             'paid_status' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
@@ -120,6 +123,9 @@ class TrainerBookingController extends Controller
         $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 1);
         $sessionsCount = max(1, $sessionsCount);
         $pricePerSession = (float) ($package->price / $sessionsCount);
+        $totalPrice = (float) $package->price;
+        $discountAmount = min((float) ($validated['discount_amount'] ?? 0), $totalPrice);
+        $finalPrice = max(0, $totalPrice - $discountAmount);
 
         $status = $validated['status'] ?? 'confirmed';
         $paidStatus = $validated['paid_status'] ?? 'unpaid';
@@ -138,7 +144,9 @@ class TrainerBookingController extends Controller
             'total_hold_days' => 0,
             'price_per_session' => $pricePerSession,
             'sessions_remaining' => $sessionsCount,
-            'total_price' => (float) $package->price,
+            'total_price' => $totalPrice,
+            'discount_amount' => $discountAmount,
+            'final_price' => $finalPrice,
             'status' => $status,
             'paid_status' => $paidStatus,
             'paid_at' => $paidStatus === 'paid' ? now() : null,
