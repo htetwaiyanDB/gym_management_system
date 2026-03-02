@@ -182,6 +182,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/trainer-bookings/session/{booking}/sessions', [TrainerBookingController::class, 'updateSessions']);
         Route::patch('/trainer-bookings/{booking}/hold', [TrainerBookingController::class, 'hold']);
         Route::patch('/trainer-bookings/{booking}/resume', [TrainerBookingController::class, 'resume']);
+        Route::patch('/trainer-bookings/{booking}/extend', [TrainerBookingController::class, 'extend']);
 
         //Boxing bookin endpoints
         Route::get('/boxing-bookings', [BoxingBookingController::class, 'index']);
@@ -191,6 +192,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/boxing-bookings/session/{booking}/sessions', [BoxingBookingController::class, 'updateSessions']);
         Route::patch('/boxing-bookings/{booking}/hold', [BoxingBookingController::class, 'hold']);
         Route::patch('/boxing-bookings/{booking}/resume', [BoxingBookingController::class, 'resume']);
+        Route::patch('/boxing-bookings/{booking}/extend', [BoxingBookingController::class, 'extend']);
 
 
          // Trainer package endpoints
@@ -221,6 +223,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/options', [SubscriptionController::class, 'options']);
         Route::post('/{subscription}/hold', [SubscriptionController::class, 'hold']);
         Route::post('/{subscription}/resume', [SubscriptionController::class, 'resume']);
+        Route::patch('/{subscription}/extend', [SubscriptionController::class, 'extend']);
         });
 
         Route::post('/subscription/all-hold', [SubscriptionController::class, 'holdAll']);
