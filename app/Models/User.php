@@ -13,6 +13,7 @@ use App\Models\AttendanceScan;
 use App\Models\TrainerBooking;
 use App\Models\BoxingBooking;
 use App\Models\MemberMembership;
+use App\Models\Point;
 
 class User extends Authenticatable
 {
@@ -164,6 +165,11 @@ class User extends Authenticatable
     public function subscriptions()
     {
         return $this->hasMany(MemberMembership::class, 'member_id');
+    }
+
+    public function point()
+    {
+        return $this->hasOne(Point::class);
     }
 
 }

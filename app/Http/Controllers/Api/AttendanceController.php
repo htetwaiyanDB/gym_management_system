@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceScan;
 use App\Models\User;
+use App\Models\Point;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -220,22 +221,40 @@ class AttendanceController extends Controller
 
     private function recordScan(User $user): AttendanceScan
     {
+        $today = Carbon::today();
 
         $lastScan = AttendanceScan::query()
             ->where('user_id', $user->id)
-            ->whereDate('scanned_at', Carbon::today())
+            ->whereDate('scanned_at', $today)
             ->orderByDesc('scanned_at')
             ->first();
+
+        $hasCheckedOutToday = AttendanceScan::query()
+            ->where('user_id', $user->id)
+            ->where('action', 'check_out')
+            ->whereDate('scanned_at', $today)
+            ->exists();
 
         $nextAction = $lastScan && $lastScan->action === 'check_in'
             ? 'check_out'
             : 'check_in';
 
-         return AttendanceScan::create([
+        $scan = AttendanceScan::create([
             'user_id' => $user->id,
             'action' => $nextAction,
             'scanned_at' => Carbon::now(),
         ]);
+
+        if ($nextAction === 'check_out' && !$hasCheckedOutToday) {
+            $point = Point::firstOrCreate(
+                ['user_id' => $user->id],
+                ['point' => 0],
+            );
+
+            $point->increment('point', 50);
+        }
+
+        return $scan;
     }
 
         private function qrUrl(string $type): string

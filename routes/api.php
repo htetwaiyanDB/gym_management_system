@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\UserMessageController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserRecordsController;
 use App\Http\Controllers\Api\GymClassController;
+use App\Http\Controllers\Api\PointController;
 use Mews\Captcha\Facades\Captcha;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
@@ -231,6 +232,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/qr/refresh', [AttendanceController::class, 'refreshQr']);
             Route::post('/rfid/register', [RfidAttendanceController::class, 'registerCard']);
         });
+
+        Route::get('/points', [PointController::class, 'index']);
+        Route::get('/points/{point}', [PointController::class, 'show']);
+        Route::post('/points', [PointController::class, 'store']);
+        Route::put('/points/{point}', [PointController::class, 'update']);
+        Route::patch('/points/{point}', [PointController::class, 'update']);
+        Route::delete('/points/{point}', [PointController::class, 'destroy']);
 
         Route::get('/dashboard/attendance-report', [DashboardController::class, 'attendanceReport']);
         Route::get('/dashboard/growth-summary', [DashboardController::class, 'growthSummary']);
