@@ -268,6 +268,40 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    public function extend(Request $request, MemberMembership $subscription)
+    {
+        $validated = $request->validate([
+            'extension_days' => ['nullable', 'integer', 'min:1', 'required_without:new_end_date'],
+            'new_end_date' => ['nullable', 'date', 'required_without:extension_days'],
+        ]);
+
+        $currentEndDate = $subscription->end_date
+            ? Carbon::parse($subscription->end_date)
+            : Carbon::today();
+
+        if (array_key_exists('new_end_date', $validated) && $validated['new_end_date'] !== null) {
+            $updatedEndDate = Carbon::parse($validated['new_end_date']);
+
+            if ($updatedEndDate->lte($currentEndDate)) {
+                return response()->json([
+                    'message' => 'New end date must be after the current end date.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        } else {
+            $updatedEndDate = $currentEndDate->copy()->addDays((int) $validated['extension_days']);
+        }
+
+        $subscription->update([
+            'end_date' => $updatedEndDate->toDateString(),
+            'is_expired' => false,
+        ]);
+
+        return response()->json([
+            'message' => 'Subscription end date extended successfully.',
+            'end_date' => $subscription->end_date?->toDateString(),
+        ]);
+    }
+
 
     private function resolvePlanPrice(?string $planName, ?int $durationDays, ?PricingSetting $pricingSetting): ?float
     {

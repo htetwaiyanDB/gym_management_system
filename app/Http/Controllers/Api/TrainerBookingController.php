@@ -312,4 +312,38 @@ class TrainerBookingController extends Controller
             'month_end_date' => optional($booking->month_end_date)->toIso8601String(),
         ]);
     }
+
+    public function extend(Request $request, TrainerBooking $booking)
+    {
+        $validated = $request->validate([
+            'extension_days' => ['nullable', 'integer', 'min:1', 'required_without:new_end_date'],
+            'new_end_date' => ['nullable', 'date', 'required_without:extension_days'],
+        ]);
+
+        $endDateColumn = $booking->isMonthBased() ? 'month_end_date' : 'sessions_end_date';
+        $currentEndDate = $booking->{$endDateColumn}
+            ? Carbon::parse($booking->{$endDateColumn})
+            : Carbon::today();
+
+        if (array_key_exists('new_end_date', $validated) && $validated['new_end_date'] !== null) {
+            $updatedEndDate = Carbon::parse($validated['new_end_date']);
+
+            if ($updatedEndDate->lte($currentEndDate)) {
+                return response()->json([
+                    'message' => 'New end date must be after the current end date.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        } else {
+            $updatedEndDate = $currentEndDate->copy()->addDays((int) $validated['extension_days']);
+        }
+
+        $booking->update([
+            $endDateColumn => $updatedEndDate,
+        ]);
+
+        return response()->json([
+            'message' => 'Booking end date extended successfully.',
+            'end_date' => optional($booking->{$endDateColumn})->toIso8601String(),
+        ]);
+    }
 }
