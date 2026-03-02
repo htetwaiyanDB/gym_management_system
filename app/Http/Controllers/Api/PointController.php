@@ -10,12 +10,19 @@ use Illuminate\Validation\Rule;
 
 class PointController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $points = Point::query()
+        $query = Point::query()
             ->with('user:id,name,role')
-            ->orderByDesc('point')
-            ->get();
+            ->orderByDesc('point');
+
+        $user = $request->user();
+
+        if ($user && $user->role !== 'administrator') {
+            $query->where('user_id', $user->id);
+        }
+
+        $points = $query->get();
 
         return response()->json([
             'data' => $points->map(fn (Point $point) => $this->formatPoint($point)),

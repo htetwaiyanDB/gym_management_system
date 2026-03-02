@@ -94,6 +94,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my/messages', [UserMessageController::class, 'messages']);
     Route::post('/my/messages', [UserMessageController::class, 'sendMessage']);
 
+    // Points endpoint (admins see all, user/trainer see their own)
+    Route::get('/points', [PointController::class, 'index']);
+
     // Gym class schedule endpoints (available to authenticated users)
     Route::get('/classes', [GymClassController::class, 'index']);
     Route::get('/classes/{gymClass}', [GymClassController::class, 'show']);
@@ -233,7 +236,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/rfid/register', [RfidAttendanceController::class, 'registerCard']);
         });
 
-        Route::get('/points', [PointController::class, 'index']);
         Route::get('/points/{point}', [PointController::class, 'show']);
         Route::post('/points', [PointController::class, 'store']);
         Route::put('/points/{point}', [PointController::class, 'update']);
