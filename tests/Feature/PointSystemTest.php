@@ -93,3 +93,34 @@ it('supports administrator CRUD for points endpoint', function () {
 
     $this->assertDatabaseMissing('points', ['id' => $pointId]);
 });
+
+it('allows admin manual adjustments without daily reward restrictions', function () {
+    $admin = User::factory()->create(['role' => 'administrator']);
+    $member = User::factory()->create(['role' => 'user']);
+
+    Sanctum::actingAs($admin);
+
+    // First completed cycle awards daily reward.
+    $this->postJson('/api/attendance/scan', [
+        'user_id' => $member->id,
+        'qr_type' => 'user',
+    ])->assertOk();
+
+    $this->postJson('/api/attendance/scan', [
+        'user_id' => $member->id,
+        'qr_type' => 'user',
+    ])->assertOk();
+
+    // Admin can still adjust points freely on the same day.
+    $this->postJson('/api/points/adjust', [
+        'user_id' => $member->id,
+        'amount' => -25,
+        'reason' => 'Reward redemption',
+    ])->assertOk()->assertJsonPath('data.point', 25);
+
+    $this->postJson('/api/points/adjust', [
+        'user_id' => $member->id,
+        'amount' => 5000,
+        'reason' => 'Manual correction',
+    ])->assertOk()->assertJsonPath('data.point', 5025);
+});

@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class AttendanceController extends Controller
@@ -221,43 +222,52 @@ class AttendanceController extends Controller
 
     private function recordScan(User $user): AttendanceScan
     {
-        $today = Carbon::today();
+        return DB::transaction(function () use ($user) {
+            $today = Carbon::today()->toDateString();
 
-        $lastScan = AttendanceScan::query()
-            ->where('user_id', $user->id)
-            ->whereDate('scanned_at', $today)
-            ->orderByDesc('scanned_at')
-            ->first();
+            $lastScan = AttendanceScan::query()
+                ->where('user_id', $user->id)
+                ->whereDate('scanned_at', $today)
+                ->lockForUpdate()
+                ->orderByDesc('scanned_at')
+                ->first();
 
-        $hasCheckedOutToday = AttendanceScan::query()
-            ->where('user_id', $user->id)
-            ->where('action', 'check_out')
-            ->whereDate('scanned_at', $today)
-            ->exists();
+            $nextAction = $lastScan && $lastScan->action === 'check_in'
+                ? 'check_out'
+                : 'check_in';
 
-        $nextAction = $lastScan && $lastScan->action === 'check_in'
-            ? 'check_out'
-            : 'check_in';
+            $scan = AttendanceScan::create([
+                'user_id' => $user->id,
+                'action' => $nextAction,
+                'scanned_at' => Carbon::now(),
+            ]);
 
-        $scan = AttendanceScan::create([
-            'user_id' => $user->id,
-            'action' => $nextAction,
-            'scanned_at' => Carbon::now(),
-        ]);
+            if ($nextAction === 'check_out') {
+                $point = Point::query()
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
 
-        if ($nextAction === 'check_out' && !$hasCheckedOutToday) {
-            $point = Point::firstOrCreate(
-                ['user_id' => $user->id],
-                ['point' => 0],
-            );
+                if (!$point) {
+                    $point = Point::create([
+                        'user_id' => $user->id,
+                        'point' => 0,
+                    ]);
+                }
 
-            $point->increment('point', 50);
-        }
+                if ($point->last_daily_reward_date?->toDateString() !== $today) {
+                    $point->forceFill([
+                        'point' => $point->point + 50,
+                        'last_daily_reward_date' => $today,
+                    ])->save();
+                }
+            }
 
-        return $scan;
+            return $scan;
+        });
     }
 
-        private function qrUrl(string $type): string
+    private function qrUrl(string $type): string
     {
         $token = $this->getQrToken($type);
 

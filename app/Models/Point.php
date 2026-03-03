@@ -10,6 +10,11 @@ class Point extends Model
     protected $fillable = [
         'user_id',
         'point',
+        'last_daily_reward_date',
+    ];
+
+    protected $casts = [
+        'last_daily_reward_date' => 'date',
     ];
 
     public function user(): BelongsTo
