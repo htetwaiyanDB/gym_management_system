@@ -243,6 +243,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/points/{point}', [PointController::class, 'show']);
         Route::post('/points', [PointController::class, 'store']);
+        Route::post('/points/adjust', [PointController::class, 'adjust']);
         Route::put('/points/{point}', [PointController::class, 'update']);
         Route::patch('/points/{point}', [PointController::class, 'update']);
         Route::delete('/points/{point}', [PointController::class, 'destroy']);
