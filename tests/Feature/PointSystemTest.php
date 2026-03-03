@@ -2,6 +2,7 @@
 
 use App\Models\Point;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -33,6 +34,34 @@ it('awards 50 points only once per day after first check-out', function () {
     $this->postJson('/api/attendance/scan', [
         'user_id' => $member->id,
         'qr_type' => 'user',
+    ])->assertOk()->assertJsonPath('record.action', 'check_out');
+
+    expect(Point::where('user_id', $member->id)->value('point'))->toBe(50);
+});
+
+it('awards points from user qr check-in flow after completed daily cycle', function () {
+    $member = User::factory()->create(['role' => 'user']);
+
+    Sanctum::actingAs($member);
+
+    Cache::forever('attendance_qr_token_user', 'test-token');
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'test-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_in');
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'test-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_out');
+
+    expect(Point::where('user_id', $member->id)->value('point'))->toBe(50);
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'test-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_in');
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'test-token',
     ])->assertOk()->assertJsonPath('record.action', 'check_out');
 
     expect(Point::where('user_id', $member->id)->value('point'))->toBe(50);

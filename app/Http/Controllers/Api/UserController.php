@@ -11,11 +11,13 @@ use App\Models\TrainerBooking;
 use App\Models\BoxingBooking;
 use App\Models\User;
 use App\Models\PricingSetting;
+use App\Models\Point;
 use App\Notifications\NewMessageNotification;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -368,21 +370,49 @@ class UserController extends Controller
 
     private function recordScan(User $user): AttendanceScan
     {
-        $lastScan = AttendanceScan::query()
-            ->where('user_id', $user->id)
-            ->whereDate('scanned_at', Carbon::today())
-            ->orderByDesc('scanned_at')
-            ->first();
+        return DB::transaction(function () use ($user) {
+            $today = Carbon::today()->toDateString();
 
-        $nextAction = $lastScan && $lastScan->action === 'check_in'
-            ? 'check_out'
-            : 'check_in';
+            $lastScan = AttendanceScan::query()
+                ->where('user_id', $user->id)
+                ->whereDate('scanned_at', $today)
+                ->lockForUpdate()
+                ->orderByDesc('scanned_at')
+                ->first();
 
-        return AttendanceScan::create([
-            'user_id' => $user->id,
-            'action' => $nextAction,
-            'scanned_at' => Carbon::now(),
-        ]);
+            $nextAction = $lastScan && $lastScan->action === 'check_in'
+                ? 'check_out'
+                : 'check_in';
+
+            $scan = AttendanceScan::create([
+                'user_id' => $user->id,
+                'action' => $nextAction,
+                'scanned_at' => Carbon::now(),
+            ]);
+
+            if ($nextAction === 'check_out') {
+                $point = Point::query()
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $point) {
+                    $point = Point::create([
+                        'user_id' => $user->id,
+                        'point' => 0,
+                    ]);
+                }
+
+                if ($point->last_daily_reward_date?->toDateString() !== $today) {
+                    $point->forceFill([
+                        'point' => $point->point + 50,
+                        'last_daily_reward_date' => $today,
+                    ])->save();
+                }
+            }
+
+            return $scan;
+        });
     }
 
     private function tokenMatches(string $type, string $token): bool
