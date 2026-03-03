@@ -7,6 +7,7 @@ use App\Models\AttendanceScan;
 use App\Models\BlogPost;
 use App\Models\Message;
 use App\Models\MemberMembership;
+use App\Models\Point;
 use App\Models\TrainerBooking;
 use App\Models\BoxingBooking;
 use App\Models\User;
@@ -368,21 +369,40 @@ class UserController extends Controller
 
     private function recordScan(User $user): AttendanceScan
     {
+        $today = Carbon::today();
+
         $lastScan = AttendanceScan::query()
             ->where('user_id', $user->id)
-            ->whereDate('scanned_at', Carbon::today())
+            ->whereDate('scanned_at', $today)
             ->orderByDesc('scanned_at')
             ->first();
+
+        $hasCheckedOutToday = AttendanceScan::query()
+            ->where('user_id', $user->id)
+            ->where('action', 'check_out')
+            ->whereDate('scanned_at', $today)
+            ->exists();
 
         $nextAction = $lastScan && $lastScan->action === 'check_in'
             ? 'check_out'
             : 'check_in';
 
-        return AttendanceScan::create([
+        $scan = AttendanceScan::create([
             'user_id' => $user->id,
             'action' => $nextAction,
             'scanned_at' => Carbon::now(),
         ]);
+
+        if ($nextAction === 'check_out' && ! $hasCheckedOutToday) {
+            $point = Point::firstOrCreate(
+                ['user_id' => $user->id],
+                ['point' => 0],
+            );
+
+            $point->increment('point', 50);
+        }
+
+        return $scan;
     }
 
     private function tokenMatches(string $type, string $token): bool

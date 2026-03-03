@@ -39,6 +39,73 @@ it('awards 50 points only once per day after first check-out', function () {
 });
 
 
+it('awards user scan points on first check-out only for the day', function () {
+    $member = User::factory()->create(['role' => 'user']);
+
+    cache()->forever('attendance_qr_token_user', 'user-token');
+    Sanctum::actingAs($member);
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'user-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_in');
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'user-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_out');
+
+    $this->assertDatabaseHas('points', [
+        'user_id' => $member->id,
+        'point' => 50,
+    ]);
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'user-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_in');
+
+    $this->postJson('/api/user/check-in/scan', [
+        'token' => 'user-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_out');
+
+    $this->assertDatabaseHas('points', [
+        'user_id' => $member->id,
+        'point' => 50,
+    ]);
+});
+
+it('awards trainer scan points on first check-out only for the day', function () {
+    $trainer = User::factory()->create(['role' => 'trainer']);
+
+    cache()->forever('attendance_qr_token_trainer', 'trainer-token');
+    Sanctum::actingAs($trainer);
+
+    $this->postJson('/api/trainer/check-in/scan', [
+        'token' => 'trainer-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_in');
+
+    $this->postJson('/api/trainer/check-in/scan', [
+        'token' => 'trainer-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_out');
+
+    $this->assertDatabaseHas('points', [
+        'user_id' => $trainer->id,
+        'point' => 50,
+    ]);
+
+    $this->postJson('/api/trainer/check-in/scan', [
+        'token' => 'trainer-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_in');
+
+    $this->postJson('/api/trainer/check-in/scan', [
+        'token' => 'trainer-token',
+    ])->assertOk()->assertJsonPath('record.action', 'check_out');
+
+    $this->assertDatabaseHas('points', [
+        'user_id' => $trainer->id,
+        'point' => 50,
+    ]);
+});
+
+
 it('limits /api/points to the authenticated user for user and trainer roles', function () {
     $member = User::factory()->create(['role' => 'user']);
     $trainer = User::factory()->create(['role' => 'trainer']);
