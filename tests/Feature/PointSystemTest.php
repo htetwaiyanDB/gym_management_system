@@ -105,6 +105,28 @@ it('awards trainer scan points on first check-out only for the day', function ()
     ]);
 });
 
+it('awards rfid scan points on check-out and creates a points row when missing', function () {
+    $member = User::factory()->create([
+        'role' => 'user',
+        'card_id' => 'RFID-0005',
+    ]);
+
+    Sanctum::actingAs($member);
+
+    $this->postJson('/api/attendance/rfid/scan', [
+        'card_id' => 'RFID-0005',
+    ])->assertOk()->assertJsonPath('attendance.action', 'check_in');
+
+    $this->postJson('/api/attendance/rfid/scan', [
+        'card_id' => 'RFID-0005',
+    ])->assertOk()->assertJsonPath('attendance.action', 'check_out');
+
+    $this->assertDatabaseHas('points', [
+        'user_id' => $member->id,
+        'point' => 50,
+    ]);
+});
+
 
 it('limits /api/points to the authenticated user for user and trainer roles', function () {
     $member = User::factory()->create(['role' => 'user']);
