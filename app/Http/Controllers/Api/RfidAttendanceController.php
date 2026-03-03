@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\RfidAttendance;
 use App\Models\AttendanceScan;
+use App\Models\Point;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -116,6 +117,13 @@ class RfidAttendanceController extends Controller
                     'action' => 'check_out',
                     'scanned_at' => $now,
                 ]);
+
+                $point = Point::firstOrCreate(
+                    ['user_id' => $user->id],
+                    ['point' => 0],
+                );
+
+                $point->increment('point', 50);
 
                 return [
                     'action' => 'check_out',
