@@ -220,6 +220,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [SubscriptionController::class, 'index']);
         Route::post('/', [SubscriptionController::class, 'store']);
         Route::post('/all-hold', [SubscriptionController::class, 'holdAll']);
+        Route::post('/all-resume', [SubscriptionController::class, 'resumeAll']);
         Route::get('/options', [SubscriptionController::class, 'options']);
         Route::post('/{subscription}/hold', [SubscriptionController::class, 'hold']);
         Route::post('/{subscription}/resume', [SubscriptionController::class, 'resume']);
@@ -227,6 +228,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         Route::post('/subscription/all-hold', [SubscriptionController::class, 'holdAll']);
+        Route::post('/subscription/all-resume', action:[SubscriptionController::class, 'resumeall']);
 
         Route::prefix('attendance')->group(function () {
             Route::get('/users', [AttendanceController::class, 'users']);
