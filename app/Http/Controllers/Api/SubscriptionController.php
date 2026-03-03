@@ -268,6 +268,43 @@ class SubscriptionController extends Controller
         ]);
     }
 
+        public function resumeAll()
+    {
+        $today = Carbon::today();
+
+        $subscriptions = MemberMembership::query()
+            ->where('is_on_hold', true)
+            ->get();
+
+        $updatedCount = 0;
+
+        foreach ($subscriptions as $subscription) {
+            $holdStartedAt = $subscription->hold_started_at
+                ? Carbon::parse($subscription->hold_started_at)
+                : $today;
+            $holdDays = max(0, $holdStartedAt->diffInDays($today));
+
+            if ($subscription->end_date) {
+                $subscription->end_date = Carbon::parse($subscription->end_date)->addDays($holdDays);
+            }
+
+            $subscription->is_on_hold = false;
+            $subscription->hold_started_at = null;
+            $subscription->is_expired = false;
+            $subscription->save();
+
+            $updatedCount++;
+        }
+
+        return response()->json([
+            'message' => $updatedCount > 0
+                ? 'All on-hold subscriptions have been resumed.'
+                : 'No on-hold subscriptions were available to resume.',
+            'updated_count' => $updatedCount,
+        ]);
+    }
+
+
     public function extend(Request $request, MemberMembership $subscription)
     {
         $validated = $request->validate([
