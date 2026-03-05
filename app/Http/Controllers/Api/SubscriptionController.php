@@ -339,6 +339,15 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    public function destroy(MemberMembership $subscription)
+    {
+        $subscription->delete();
+
+        return response()->json([
+            'message' => 'Subscription deleted successfully.',
+        ]);
+    }
+
 
     private function resolvePlanPrice(?string $planName, ?int $durationDays, ?PricingSetting $pricingSetting): ?float
     {

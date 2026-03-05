@@ -346,4 +346,13 @@ class TrainerBookingController extends Controller
             'end_date' => optional($booking->{$endDateColumn})->toIso8601String(),
         ]);
     }
+
+    public function destroy(TrainerBooking $booking)
+    {
+        $booking->delete();
+
+        return response()->json([
+            'message' => 'Trainer booking deleted successfully.',
+        ]);
+    }
 }

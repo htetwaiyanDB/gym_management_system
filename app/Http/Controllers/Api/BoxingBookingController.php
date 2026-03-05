@@ -369,4 +369,13 @@ class BoxingBookingController extends Controller
         ]);
     }
 
+    public function destroy(BoxingBooking $booking)
+    {
+        $booking->delete();
+
+        return response()->json([
+            'message' => 'Boxing booking deleted successfully.',
+        ]);
+    }
+
 }

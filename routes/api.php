@@ -183,6 +183,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/trainer-bookings/{booking}/hold', [TrainerBookingController::class, 'hold']);
         Route::patch('/trainer-bookings/{booking}/resume', [TrainerBookingController::class, 'resume']);
         Route::patch('/trainer-bookings/{booking}/extend', [TrainerBookingController::class, 'extend']);
+        Route::delete('/trainer-bookings/{booking}', [TrainerBookingController::class, 'destroy']);
 
         //Boxing bookin endpoints
         Route::get('/boxing-bookings', [BoxingBookingController::class, 'index']);
@@ -193,6 +194,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/boxing-bookings/{booking}/hold', [BoxingBookingController::class, 'hold']);
         Route::patch('/boxing-bookings/{booking}/resume', [BoxingBookingController::class, 'resume']);
         Route::patch('/boxing-bookings/{booking}/extend', [BoxingBookingController::class, 'extend']);
+        Route::delete('/boxing-bookings/{booking}', [BoxingBookingController::class, 'destroy']);
 
 
          // Trainer package endpoints
@@ -225,6 +227,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{subscription}/hold', [SubscriptionController::class, 'hold']);
         Route::post('/{subscription}/resume', [SubscriptionController::class, 'resume']);
         Route::patch('/{subscription}/extend', [SubscriptionController::class, 'extend']);
+        Route::delete('/{subscription}', [SubscriptionController::class, 'destroy']);
         });
 
         Route::post('/subscription/all-hold', [SubscriptionController::class, 'holdAll']);
