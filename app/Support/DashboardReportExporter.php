@@ -3,9 +3,9 @@
 namespace App\Support;
 
 use App\Models\AttendanceScan;
+use App\Models\BoxingBooking;
 use App\Models\MemberMembership;
 use App\Models\TrainerBooking;
-use App\Models\BoxingBooking;
 use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Support\Collection;
@@ -14,20 +14,30 @@ class DashboardReportExporter
 {
     public function buildReportData(): array
     {
+        [$monthStart, $monthEnd] = $this->currentMonthDateRange();
+
         return [
-            'Users' => User::query()->latest()->get(),
+            'Users' => User::query()
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->latest()
+                ->get(),
             'Subscriptions' => MemberMembership::with(['member', 'plan'])
+                ->whereBetween('start_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
                 ->latest('start_date')
                 ->get(),
             'Trainer Bookings' => TrainerBooking::with(['member', 'trainer'])
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->latest('created_at')
                 ->get(),
             'Boxing Bookings' => BoxingBooking::with(['member', 'trainer', 'boxingPackage'])
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->latest('created_at')
                 ->get(),
             'Attendance Scans' => AttendanceScan::with('user')
+                ->whereBetween('scanned_at', [$monthStart, $monthEnd])
                 ->latest('scanned_at')
                 ->get(),
+            'Monthly Income Summary' => $this->buildMonthlyIncomeSummary(),
         ];
     }
 
@@ -36,10 +46,10 @@ class DashboardReportExporter
         $worksheets = collect($reportData)->map(function (Collection $rows, string $title) {
             $normalizedRows = $this->normalizeRows($rows);
 
-             return $this->renderWorksheet($title, $normalizedRows);
+            return $this->renderWorksheet($title, $normalizedRows);
         })->implode("\n");
 
-         return <<<XML
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
@@ -66,6 +76,56 @@ XML;
             $normalizedData,
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
         );
+    }
+
+    private function buildMonthlyIncomeSummary(int $months = 6): Collection
+    {
+        $startMonth = now()->startOfMonth()->subMonths($months - 1);
+
+        $membershipRows = MemberMembership::query()
+            ->selectRaw("DATE_FORMAT(start_date, '%Y-%m') as month_key")
+            ->selectRaw('SUM(final_price) as total')
+            ->whereDate('start_date', '>=', $startMonth->toDateString())
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
+        $trainerRows = TrainerBooking::query()
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key")
+            ->selectRaw('SUM(final_price) as total')
+            ->whereDate('created_at', '>=', $startMonth->toDateString())
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
+        $boxingRows = BoxingBooking::query()
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key")
+            ->selectRaw('SUM(final_price) as total')
+            ->whereDate('created_at', '>=', $startMonth->toDateString())
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
+        return collect(range(0, $months - 1))->map(function (int $monthOffset) use ($startMonth, $membershipRows, $trainerRows, $boxingRows) {
+            $month = $startMonth->copy()->addMonths($monthOffset);
+            $monthKey = $month->format('Y-m');
+            $subscriptionTotal = (float) ($membershipRows[$monthKey] ?? 0);
+            $trainerTotal = (float) ($trainerRows[$monthKey] ?? 0);
+            $boxingTotal = (float) ($boxingRows[$monthKey] ?? 0);
+
+            return [
+                'month' => $month->format('M Y'),
+                'subscriptions_total' => number_format($subscriptionTotal, 2, '.', ''),
+                'trainer_bookings_total' => number_format($trainerTotal, 2, '.', ''),
+                'boxing_bookings_total' => number_format($boxingTotal, 2, '.', ''),
+                'overall_total' => number_format($subscriptionTotal + $trainerTotal + $boxingTotal, 2, '.', ''),
+            ];
+        });
+    }
+
+    private function currentMonthDateRange(): array
+    {
+        $start = now()->startOfMonth()->startOfDay();
+        $end = now()->endOfMonth()->endOfDay();
+
+        return [$start, $end];
     }
 
     private function normalizeRows(Collection $rows): array
@@ -96,7 +156,7 @@ XML;
         return (string) ($value ?? '');
     }
 
-        private function normalizeJsonValue($value)
+    private function normalizeJsonValue($value)
     {
         if ($value instanceof DateTimeInterface) {
             return $value->format('Y-m-d H:i:s');
@@ -112,16 +172,14 @@ XML;
             return $value;
         }
 
-
-                return $value ?? '';
+        return $value ?? '';
     }
 
     private function renderWorksheet(string $title, array $rows): string
     {
         $worksheetName = $this->sanitizeWorksheetName($title);
 
-
-                       if (count($rows) === 0) {
+        if (count($rows) === 0) {
             $rowsXml = $this->renderWorksheetRow(['No data available.']);
         } else {
             $headers = array_keys($rows[0]);
@@ -145,7 +203,7 @@ XML;
         XML;
     }
 
-           private function renderWorksheetRow(array $values): string
+    private function renderWorksheetRow(array $values): string
     {
         $cells = collect($values)->map(function ($value) {
             $escapedValue = htmlspecialchars((string) $value, ENT_XML1 | ENT_COMPAT, 'UTF-8');
@@ -155,12 +213,12 @@ XML;
 XML;
         })->implode('');
 
-          return "<Row>{$cells}</Row>";
+        return "<Row>{$cells}</Row>";
     }
 
     private function sanitizeWorksheetName(string $title): string
     {
-        $cleaned = preg_replace('/[:\\\\\\/\\?\\*\\[\\]]/', ' ', $title);
+        $cleaned = preg_replace('/[:\\\\\/\?\*\[\]]/', ' ', $title);
         $cleaned = trim((string) $cleaned);
 
         return mb_substr($cleaned === '' ? 'Sheet' : $cleaned, 0, 31);
