@@ -231,7 +231,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         Route::post('/subscription/all-hold', [SubscriptionController::class, 'holdAll']);
-        Route::post('/subscription/all-resume', action:[SubscriptionController::class, 'resumeall']);
+        Route::post('/subscription/all-resume', [SubscriptionController::class, 'resumeAll']);
 
         Route::prefix('attendance')->group(function () {
             Route::get('/users', [AttendanceController::class, 'users']);
