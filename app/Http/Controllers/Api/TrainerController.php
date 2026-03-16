@@ -117,9 +117,9 @@ class TrainerController extends Controller
                         : null,
                     'sessions_count' => $booking->sessions_count,
                     'sessions_remaining' => $booking->sessions_remaining,
-                    'start_date' => optional($booking->isMonthBased() ? $booking->month_start_date : $booking->sessions_start_date)
+                    'start_date' => optional($booking->month_start_date ?? $booking->sessions_start_date)
                         ->toIso8601String(),
-                    'end_date' => optional($booking->isMonthBased() ? $booking->month_end_date : $booking->sessions_end_date)
+                    'end_date' => optional($booking->month_end_date ?? $booking->sessions_end_date)
                         ->toIso8601String(),
                     'status' => $booking->status,
                     'paid_status' => $booking->paid_status,
