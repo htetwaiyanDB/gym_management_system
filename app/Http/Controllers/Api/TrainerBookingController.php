@@ -49,6 +49,8 @@ class TrainerBookingController extends Controller
                     'sessions_end_date' => optional($booking->sessions_end_date)->toIso8601String(),
                     'month_start_date' => optional($booking->month_start_date)->toIso8601String(),
                     'month_end_date' => optional($booking->month_end_date)->toIso8601String(),
+                    'start_date' => optional($booking->month_start_date ?? $booking->sessions_start_date)->toIso8601String(),
+                    'end_date' => optional($booking->month_end_date ?? $booking->sessions_end_date)->toIso8601String(),
                     'hold_start_date' => optional($booking->hold_start_date)->toIso8601String(),
                     'hold_end_date' => optional($booking->hold_end_date)->toIso8601String(),
                     'total_hold_days' => $booking->total_hold_days,
