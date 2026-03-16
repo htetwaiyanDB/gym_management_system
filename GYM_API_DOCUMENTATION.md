@@ -896,6 +896,38 @@ GET /api/blogs/how-to-build-muscle
 
 **GET** `/trainer/subscriptions` ✅ Protected (trainer)
 
+**Success (200)**
+```json
+{
+  "bookings": [
+    {
+      "id": 25,
+      "member": {
+        "id": 25,
+        "name": "Htoo Htoo Eaint Kyaw",
+        "email": "htooeaint@gmail.com",
+        "phone": "09888048024"
+      },
+      "trainer_package": {
+        "id": 6,
+        "name": "1 Month",
+        "package_type": "monthly",
+        "sessions_count": null,
+        "duration_months": 1,
+        "price": 400000
+      },
+      "sessions_count": 1,
+      "sessions_remaining": 1,
+      "start_date": "2026-03-01T00:00:00+00:00",
+      "end_date": "2026-04-01T00:00:00+00:00",
+      "status": "active",
+      "paid_status": "paid",
+      "notes": "Kpay"
+    }
+  ]
+}
+```
+
 ---
 
 ### 42) Trainer Messages (Trainer ↔ Admin)
