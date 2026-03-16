@@ -33,7 +33,7 @@ class UpdateUserRequest extends FormRequest
                 'regex:/^\d{5}$/',
                 Rule::unique('users', 'user_id')->ignore($userId),
             ],
-            'name' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'name' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\s]+$/'],
             'email' => [
                 'sometimes',
                 'string',
@@ -69,7 +69,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'user_id.regex' => 'The user id must be exactly 5 digits.',
             'user_id.unique' => 'The user id has already been taken.',
-            'name.regex' => 'The name field may only contain letters and spaces.',
+            'name.regex' => 'The name field may only contain letters, numbers, and spaces.',
             'email.unique' => 'The email has already been taken.',
             'phone.unique' => 'The phone number has already been taken.',
             'password.confirmed' => 'The password confirmation does not match.',

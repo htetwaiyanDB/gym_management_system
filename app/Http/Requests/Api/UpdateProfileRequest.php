@@ -28,7 +28,7 @@ class UpdateProfileRequest extends FormRequest
         $userId = $user ? $user->id : null;
 
         return [
-            'name' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'name' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\s]+$/'],
             'email' => [
                 'sometimes',
                 'string',
@@ -61,7 +61,7 @@ class UpdateProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => 'The name field may only contain letters and spaces.',
+            'name.regex' => 'The name field may only contain letters, numbers, and spaces.',
             'email.unique' => 'The email has already been taken.',
             'phone.unique' => 'The phone number has already been taken.',
             'password.confirmed' => 'The password confirmation does not match.',
