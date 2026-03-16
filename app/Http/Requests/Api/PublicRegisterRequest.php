@@ -18,7 +18,7 @@ class PublicRegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\s]+$/'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
             'card_id' => ['nullable', 'string', 'max:255', 'unique:users,card_id'],
@@ -39,7 +39,7 @@ class PublicRegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => 'The name field may only contain letters and spaces.',
+            'name.regex' => 'The name field may only contain letters, numbers, and spaces.',
             'password.confirmed' => 'The password confirmation does not match.',
             'password.min' => 'The password must be at least 4 characters.',
             'password.numbers' => 'The password must contain at least 4 number.',
