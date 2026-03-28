@@ -243,6 +243,10 @@ class UserController extends Controller
                         : null,
                     'sessions_count' => $booking->sessions_count,
                     'sessions_remaining' => $booking->sessions_remaining,
+                    'start_date' => optional($booking->month_start_date ?? $booking->sessions_start_date)
+                        ->toIso8601String(),
+                    'end_date' => optional($booking->month_end_date ?? $booking->sessions_end_date)
+                        ->toIso8601String(),
                     'total_price' => (float) $booking->total_price,
                     'discount_percentage' => (float) $booking->discount_percentage,
                     'final_price' => (float) $booking->final_price,
