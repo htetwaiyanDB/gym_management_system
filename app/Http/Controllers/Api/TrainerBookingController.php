@@ -119,7 +119,7 @@ class TrainerBookingController extends Controller
         ]);
 
         $package = TrainerPackage::findOrFail($validated['trainer_package_id']);
-        $isMonthBased = strtolower((string) $package->package_type) === 'monthly';
+        $isMonthBased = (int) ($package->duration_months ?? 0) > 0;
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
         $sessionsCount = $package->sessions_count ?? (int) ($validated['sessions_count'] ?? 1);
@@ -216,9 +216,23 @@ class TrainerBookingController extends Controller
         ]);
     }
 
-        public function markActive(TrainerBooking $booking)
+    public function markActive(TrainerBooking $booking)
     {
-        if ($booking->status !== 'active') {
+        if ($booking->isMonthBased() && $booking->status === 'on-hold' && $booking->hold_start_date) {
+            $resumeDate = Carbon::now();
+            $holdStartedAt = Carbon::parse($booking->hold_start_date);
+            $holdDays = max(0, $holdStartedAt->diffInDays($resumeDate));
+
+            $booking->update([
+                'month_end_date' => $booking->month_end_date
+                    ? Carbon::parse($booking->month_end_date)->addDays($holdDays)
+                    : null,
+                'hold_end_date' => $resumeDate,
+                'total_hold_days' => (int) $booking->total_hold_days + $holdDays,
+                'hold_start_date' => null,
+                'status' => 'active',
+            ]);
+        } elseif ($booking->status !== 'active') {
             $booking->update([
                 'status' => 'active',
             ]);
@@ -232,9 +246,16 @@ class TrainerBookingController extends Controller
     public function markHold(TrainerBooking $booking)
     {
         if ($booking->status !== 'on-hold') {
-            $booking->update([
+            $payload = [
                 'status' => 'on-hold',
-            ]);
+              ];
+
+            if ($booking->isMonthBased() && ! $booking->hold_start_date) {
+                $payload['hold_start_date'] = Carbon::now();
+                $payload['hold_end_date'] = null;
+            }
+
+            $booking->update($payload);
         }
 
         return response()->json([
