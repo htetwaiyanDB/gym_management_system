@@ -163,7 +163,7 @@ class AuthController extends Controller
         $user = User::where($field, $identifier)->firstOrFail();
 
         // Create token with expiration (24 hours)
-        $expiresAt = now()->addHours(24);
+        $expiresAt = now()->addYear();
         $token = $user->createToken('api_token', ['*'], $expiresAt);
 
         // Return sanitized user data
